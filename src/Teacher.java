@@ -4,15 +4,17 @@ import java.util.List;
 
 public class Teacher {
 
+    private String teacherID; //***
     private String firstname;
     private String surname;
     private List<Course> coursesTaught;
 
     private int numberOfCourses;
 
-    Teacher(String firstname, String surname) {
+    Teacher(String firstname, String surname, String teacherID) {
         this.firstname = firstname;
         this.surname = surname;
+        this.teacherID = teacherID;
         coursesTaught = new ArrayList<>();
         numberOfCourses = coursesTaught.size();
 
