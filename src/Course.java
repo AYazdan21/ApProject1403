@@ -11,7 +11,7 @@ public class Course {
     private List<Student> students;
     private boolean isActive;
     private int numberOfStudents;
-    private Assignment [] assignments;
+    private List<Assignment> assignments;
     private int numberOfAssignments;
     private LocalDate ExamDate;
 
@@ -25,7 +25,7 @@ public class Course {
         this.vaheds = vaheds;
         this.isActive = isActive;
         this.ExamDate = examDate;
-        assignments = new Assignment[0];
+        assignments = new ArrayList<>();
         students = new ArrayList<>();
     }
 
