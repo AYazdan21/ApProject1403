@@ -1,4 +1,5 @@
 import java.sql.SQLOutput;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -294,7 +295,155 @@ public class Main {
 
 
         } else if (roleNum == 2) {
-            System.out.println("Welcome to the Teachers page!");
+            System.out.println("Enter Teacher ID:");
+            String TID = input.next();
+            if (DB.checkTeacherInFile(TID)) {
+                System.out.println("Welcome to the Teachers page!");
+
+                while (running) {
+                    System.out.print("""
+                        1. Add Student to Course
+                        2. Remove Student from Course
+                        3. Grade Student ////////////////
+                        4. Add Assignment to Course
+                        5. Remove Assignment from Course
+                        6. Change Assignment Deadline
+                        7. quit
+                        """);
+
+                    int choice1_teacher = input.nextInt();
+                    switch (choice1_teacher) {
+                        case 1:
+                            System.out.println("Enter Student ID:");
+                            String StudentID1 = input.next();
+                            if (DB.checkStudentInFile(StudentID1)) {
+                                System.out.println("Enter Course name:");
+                                String Cname1 = input.next();
+                                if (DB.checkCourseInFile(Cname1)) {
+                                    if (DB.checkTeacherInCourse(Cname1, TID)) {
+                                        DB.saveCourseToStudent(StudentID1, Cname1, "0");
+                                    } else {
+                                        System.out.println("You don't have access to this Course!");
+                                    }
+                                } else {
+                                    System.out.println("Course doesn't exist!");
+                                }
+                            } else {
+                                System.out.println("Student doesn't exist!");
+                            }
+                            break;
+                        case 2:
+                            System.out.println("Enter Student ID:");
+                            String StudentID2 = input.next();
+                            if (!DB.checkStudentInFile(StudentID2)) {
+                                System.out.println("Student doesn't exist!");
+                            } else {
+                                System.out.println("Enter Course name:");
+                                String Cname2 = input.next();
+                                if (!DB.checkCourseInFile(Cname2)) {
+                                    System.out.println("Course doesn't exist");
+                                } else {
+                                    if(DB.checkTeacherInCourse(Cname2, TID)) {
+                                        if (!DB.checkCourseInStudent(Cname2, StudentID2)) {
+                                            System.out.println("Student isn't enrolled in this Course.");
+                                        } else {
+                                            DB.removeCourseFromStudent(StudentID2, Cname2);
+                                            System.out.println("Student removed from Course successfully!");
+                                        }
+                                    } else {
+                                        System.out.println("You don't have access to this Course");
+                                    }
+
+                                }
+                            }
+                            break;
+                        case 3:
+                            System.out.println("Enter Course name:");
+                            String Cname3 = input.next();
+                            if (DB.checkCourseInFile(Cname3)) {
+                                if (DB.checkTeacherInCourse(Cname3, TID)) {
+                                    System.out.println("Enter Student ID");
+                                    String StudentID3 = input.next();
+                                    if (DB.checkStudentInFile(StudentID3)) {
+                                        if (DB.checkCourseInStudent(Cname3, StudentID3)) {
+                                            System.out.println("Enter grade:");
+                                            String grade = input.next();
+                                            //////////////////////////////////////////////
+                                        } else {
+                                            System.out.println("Student isn't enrolled in this Course!");
+                                        }
+                                    } else {
+                                        System.out.println("Student doesn't exist!");
+                                    }
+                                } else {
+                                    System.out.println("You don't have access to this Course!");
+                                }
+                            } else {
+                                System.out.println("Course doesn't exist!");
+                            }
+                            break;
+                        case 4:
+                            System.out.println("Enter Assignment Name:");
+                            String AName4 = input.next();
+                            System.out.println("Enter Course Name");
+                            String Cname4 = input.next();
+                            if (DB.checkTeacherInCourse(Cname4, TID)) {
+                                if (DB.checkAssignmentInFile(AName4, Cname4)) {
+                                    System.out.println("Assignment already exists!");
+                                } else {
+                                    System.out.println("Enter deadline date:");
+                                    String deadline11 = input.next();
+                                    System.out.println("is Assignment active?\nYes (1)  no (0)");
+                                    String isActive11 = input.next();
+                                    DB.saveAssignmentToFile(AName4, Cname4, deadline11, isActive11);
+                                }
+                            } else {
+                                System.out.println("You don't have access to this course");
+                            }
+                            break;
+                        case 5:
+                            System.out.println("Enter Assignment name:");
+                            String Aname5 = input.next();
+                            System.out.println("Enter Course name:");
+                            String Cname5 = input.next();
+                            if (DB.checkTeacherInCourse(Cname5, TID)) {
+                                if (!DB.checkAssignmentInFile(Aname5, Cname5)) {
+                                    System.out.println("Assignment doesn't exist!");
+                                } else {
+                                    DB.deleteAssignmentFromFile(Aname5, Cname5);
+                                }
+                            } else {
+                                System.out.println("You don't have access to this Course!");
+                            }
+                            break;
+                        case 6:
+                            System.out.println("Enter Assignment name:");
+                            String Aname6 = input.next();
+                            System.out.println("Enter Course name:");
+                            String Cname6 = input.next();
+                            if (DB.checkTeacherInCourse(Cname6, TID)) {
+                                if (!DB.checkAssignmentInFile(Aname6, Cname6)) {
+                                    System.out.println("Assignment doesn't exist!");
+                                } else {
+                                    System.out.println("Enter new Date:");
+                                    String deadline = input.next();
+                                    DB.changeAssignmentDeadline(Aname6, Cname6, deadline);
+                                }
+                            } else {
+                                System.out.println("You don't have access to this Course!");
+                            }
+                            break;
+                        case 7:
+                            running = false;
+                            break;
+
+                    }
+                }
+            } else {
+                System.out.println("Teacher with this ID isn't registered in the System. Please Try again later.");
+            }
+
+
         }
     }
 
