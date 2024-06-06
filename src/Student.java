@@ -14,11 +14,13 @@ public class Student {
     private double gradeThisSemester;
     private String firstName;
     private String lastName;
+    private String studentID;
 
 
-    Student(String firstName, String lastName) {
+    Student(String StudentID, String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.studentID = StudentID;
         this.grades = new HashMap<>();
         this.numberOfCourses = 0;
         this.numberOfVahed = 0;
