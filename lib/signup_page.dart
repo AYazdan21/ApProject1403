@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:ap_flutter/login_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'theme.dart'; // Import the theme file
 
 class SignupPage extends StatefulWidget {
@@ -7,11 +11,15 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
   final TextEditingController _stuNumController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
+  String response = '';
 
   @override
   Widget build(BuildContext context) {
@@ -20,122 +28,162 @@ class _SignupPageState extends State<SignupPage> {
         margin: const EdgeInsets.all(18.0),
         child: Center(
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                const SizedBox(height: 90,),
-                const Column(
-                  children: [
-                    Text(
-                      "Sign Up",
-                      style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 70),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextField(
-                        controller: _stuNumController,
-                        decoration: InputDecoration(
-                            labelText: 'Student Number',
-                            filled: true,
-                            fillColor: const Color(0xFFE6D6FF),
-                            prefixIcon: const Icon(Icons.person),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18.0),
-                              borderSide: BorderSide.none,
-                            )
-                        ),
-                        keyboardType: TextInputType.number
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                          labelText: 'Password',
-                          filled: true,
-                          fillColor: const Color(0xFFE6D6FF),
-                          prefixIcon: const Icon(Icons.password),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(18.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                          )
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  const SizedBox(height: 90),
+                  const Text(
+                    "Sign Up",
+                    style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 70),
+                  _buildTextFormField(
+                    controller: _firstNameController,
+                    labelText: 'First Name',
+                    icon: Icons.person,
+                    validator: (value) => value == null || value.isEmpty ? 'Please enter your first name' : null,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextFormField(
+                    controller: _surnameController,
+                    labelText: 'Surname',
+                    icon: Icons.person,
+                    validator: (value) => value == null || value.isEmpty ? 'Please enter your surname' : null,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextFormField(
+                    controller: _stuNumController,
+                    labelText: 'Student Number',
+                    icon: Icons.person,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
+                    ],
+                    keyboardType: TextInputType.number,
+                    validator: (value) => value == null || value.isEmpty ? 'Please enter your student number' : null,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextFormField(
+                    controller: _passwordController,
+                    labelText: 'Password',
+                    icon: Icons.password,
+                    obscureText: !_isPasswordVisible,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                       ),
-                      obscureText: !_isPasswordVisible,
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: _confirmPasswordController,
-                      decoration: InputDecoration(
-                          labelText: 'Confirm Password',
-                          filled: true,
-                          fillColor: const Color(0xFFE6D6FF),
-                          prefixIcon: const Icon(Icons.password),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                            borderSide: BorderSide.none,
-                          )
-                      ),
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
                       onPressed: () {
-                        // Add signup logic here
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
                       },
-                      child: const Text('Sign Up', style: TextStyle(fontSize: 16)),
                     ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Already have an account? "),
-                    TextButton(
+                    validator: (value) => _validatePassword(value),
+                  ),
+                  const SizedBox(height: 30),
+                  _isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                    onPressed: _signup,
+                    child: const Text('Sign Up', style: TextStyle(fontSize: 16)),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Already have an account? "),
+                      TextButton(
                         onPressed: () {
                           Navigator.pushNamed(context, '/login');
                         },
-                        child: const Text("Login", style: TextStyle(color: Color(0xFF2F1E9D)),)
-                    )
-                  ],
-                ),
-                const SizedBox(height: 80,),
-                const SizedBox(
-                  width: 250,
-                  child: Divider(
-                    thickness: 1,
-                    color: Color(0xFF2F1E9D),
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(color: Color(0xFF2F1E9D)),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 10),
-                Image.asset(
-                  'images/Sbu-logo.png',
-                  width: 60,
-                  height: 60,
-                ),
-                const SizedBox( height: 10),
-                const Text(
-                  'CE@SBU',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  const SizedBox(
+                    width: 250,
+                    child: Divider(
+                      thickness: 1,
+                      color: Color(0xFF2F1E9D),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Image.asset(
+                    'images/Sbu-logo.png',
+                    width: 60,
+                    height: 60,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'CE@SBU',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a password';
+    }
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (!RegExp(r'(?=.*?[A-Z])').hasMatch(value)) {
+      return 'Password must have at least one uppercase letter';
+    }
+    if (!RegExp(r'(?=.*?[a-z])').hasMatch(value)) {
+      return 'Password must have at least one lowercase letter';
+    }
+    if (!RegExp(r'(?=.*?[0-9])').hasMatch(value)) {
+      return 'Password must have at least one digit';
+    }
+    if (value.contains(_stuNumController.text)) {
+      return 'Password should not include the student number';
+    }
+    return null;
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    List<TextInputFormatter>? inputFormatters,
+    TextInputType keyboardType = TextInputType.text,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        filled: true,
+        fillColor: const Color(0xFFE6D6FF),
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18.0),
+          borderSide: BorderSide.none,
+        ),
+        suffixIcon: suffixIcon,
+      ),
+      obscureText: obscureText,
+      inputFormatters: inputFormatters,
+      keyboardType: keyboardType,
+      validator: validator,
     );
   }
 }
