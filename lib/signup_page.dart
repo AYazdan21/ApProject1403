@@ -133,7 +133,60 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  
+  Future<void> _signup() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final serverSocket = await Socket.connect("192.168.131.93", 8412);
+        serverSocket.write(
+            'signUp~${_firstNameController.text}~${_surnameController.text}~${_stuNumController.text}~${_passwordController.text}\u0000');
+
+        serverSocket.listen((socketResponse) {
+          setState(() {
+            response = String.fromCharCodes(socketResponse);
+          });
+          print("---------    server response is: { $response }");
+          if (response == "1") {
+            setState(() {
+              // Handle the user already exists case
+              _isLoading = false;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('User already exists!'),
+                backgroundColor: Colors.red,
+              ));
+            });
+          } else if (response == "2") {
+            setState(() {
+              // Handle the successful signup case
+              _isLoading = false;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('Sign Up successful'),
+                backgroundColor: Colors.green,
+              ));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            });
+          }
+        });
+
+        await serverSocket.close();
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        print("Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('An error occurred. Please try again later.'),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
+  }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
