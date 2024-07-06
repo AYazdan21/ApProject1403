@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
-import 'theme.dart'; // Import the theme file
+import 'theme.dart';
+import 'login_page.dart';
+import 'signup_page.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('en', null);
   runApp(MyApp());
 }
 
@@ -33,7 +40,10 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-
+      home: LoginPage(),
+      routes: {
+        '/login': (context) => LoginPage(),
+        '/signup': (context) => SignupPage(),
     );
   }
 }
