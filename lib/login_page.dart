@@ -137,5 +137,42 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
- 
+  // Connect server
+  Future<void> logIn() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('login~${_stuNumController.text}~${_passwordController.text}\u0000');
+
+      serverSocket.listen((socketResponse) {
+        setState(() {
+          response = String.fromCharCodes(socketResponse);
+        });
+        print("---------    server response is: { $response }");
+        if (response == "401") {
+          setState(() {
+            stuIDChecker = true;
+            passwordChecker = false;
+          });
+        } else if (response == "404") {
+          setState(() {
+            stuIDChecker = false;
+            passwordChecker = false;
+          });
+        } else if (response == "200") {
+          setState(() {
+            stuIDChecker = true;
+            passwordChecker = true;
+          });
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        }
+      });
+
+      serverSocket.close();
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
 }
