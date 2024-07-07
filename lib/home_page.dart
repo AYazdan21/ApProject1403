@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'theme.dart'; // Import the theme file
+import 'theme.dart';
 import 'todo_page.dart';
 import 'classes_page.dart';
 import 'news_page.dart';
 import 'tasks_page.dart';
-import 'info.dart'; // Import the Personal Info page
+import 'info.dart'; 
 
 class HomePage extends StatefulWidget {
   @override
@@ -17,10 +16,18 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _children = [
     HomeWidget(),
-    Kara(), // Ensure the class name matches the imported page
+    Kara(), 
     ClassesPage(),
     NewsPage(),
-    AssignmentsPage(), // Assuming you have a TasksPage widget
+    AssignmentsPage(), 
+  ];
+
+  final List<String> _titles = [
+    'Summary',
+    'Todo',
+    'Classes',
+    'News',
+    'Tasks',
   ];
 
   void onTabTapped(int index) {
@@ -34,10 +41,12 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xfff9f8fe),
-        title: Text('Summary',
-        style: TextStyle(
-          fontWeight: FontWeight.bold
-        ),),
+        title: Text(
+          _titles[_currentIndex],
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.person_2_outlined),
@@ -68,7 +77,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Classes',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.announcement),
+            icon: Icon(Icons.newspaper),
             label: 'News',
           ),
           BottomNavigationBarItem(
@@ -76,7 +85,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Tasks',
           ),
         ],
-        selectedItemColor: Colors.white, // Change selected item color
+        selectedItemColor: Colors.white, 
         unselectedItemColor: Colors.grey,
         backgroundColor: Color(0xFF2F1E9D),
         type: BottomNavigationBarType.fixed,
