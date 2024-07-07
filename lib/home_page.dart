@@ -1,10 +1,11 @@
-import 'package:ap_flutter/tasks_page.dart';
 import 'package:flutter/material.dart';
-import 'theme.dart'; 
+import 'package:intl/intl.dart';
+import 'theme.dart'; // Import the theme file
 import 'todo_page.dart';
 import 'classes_page.dart';
 import 'news_page.dart';
-import 'package:intl/intl.dart';
+import 'tasks_page.dart';
+import 'info.dart'; // Import the Personal Info page
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,10 +17,10 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _children = [
     HomeWidget(),
-   // Kara(),
-   // ClassesPage(),
-    // NewsPage(),
-    //AssignmentsPage(), 
+    Kara(), // Ensure the class name matches the imported page
+    ClassesPage(),
+    NewsPage(),
+    AssignmentsPage(), // Assuming you have a TasksPage widget
   ];
 
   void onTabTapped(int index) {
@@ -31,11 +32,28 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xfff9f8fe),
+        title: Text('Summary',
+        style: TextStyle(
+          fontWeight: FontWeight.bold
+        ),),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person_2_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => InfoPage()),
+              );
+            },
+          ),
+        ],
+      ),
       body: _children[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: onTabTapped,
-        // Change unselected item color
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -58,7 +76,6 @@ class _HomePageState extends State<HomePage> {
             label: 'Tasks',
           ),
         ],
-        // Change background color
         selectedItemColor: Colors.white, // Change selected item color
         unselectedItemColor: Colors.grey,
         backgroundColor: Color(0xFF2F1E9D),
@@ -102,7 +119,7 @@ class HomeWidget extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           taskCard('DLD - HW1', false),
-          SizedBox(height: 5,),
+          const SizedBox(height: 5),
           taskCard('AP - HW6', false),
           const SizedBox(height: 20),
           const Text(
@@ -111,7 +128,7 @@ class HomeWidget extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           taskCard('DS - HW3', true),
-          SizedBox(height: 5,),
+          const SizedBox(height: 5),
           taskCard('AP - HW5', true),
         ],
       ),
@@ -129,7 +146,7 @@ class HomeWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 40, color: Color(0xFF2F1E9D)),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(text, textAlign: TextAlign.center),
           ],
         ),
@@ -153,6 +170,23 @@ class HomeWidget extends StatelessWidget {
             color: isDone ? Colors.green : Colors.red,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class PersonalInfoPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Personal Info'),
+      ),
+      body: Center(
+        child: Text(
+          'Personal Info Page',
+          style: TextStyle(fontSize: 24),
+        ),
       ),
     );
   }
