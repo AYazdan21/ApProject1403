@@ -1,6 +1,6 @@
-import 'dart:math';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'info.dart';
 
 class ClassesPage extends StatefulWidget {
   @override
@@ -8,97 +8,229 @@ class ClassesPage extends StatefulWidget {
 }
 
 class _ClassesPageState extends State<ClassesPage> {
-  final List<Color> _colors = [Colors.purple, Colors.red, Colors.green, Colors.blue, Colors.greenAccent];
-  final Random _random = Random();
+  final TextEditingController _textController = TextEditingController();
+  List<ClassCard> classCards = [];
+  bool isLoading = true;
+  bool hasError = false;
+  String response = '';
+  String response2 = '';
+  bool classExists = true;
+  bool alreadyInClass = false;
 
-  List<ClassCard> classCards = [
-    ClassCard(
-      title: 'AP',
-      teacher: 'Mojataba Vahidi',
-      unitCount: 3,
-      remainingAssignments: 4,
-      topStudent: 'Ali Alavi',
-      color: Colors.purple,
-    ),
-    ClassCard(
-      title: 'CA',
-      teacher: 'Hamidreza Mahdiani',
-      unitCount: 3,
-      remainingAssignments: 4,
-      topStudent: 'Ali Alavi',
-      color: Colors.red,
-    ),
-    ClassCard(
-      title: 'DS',
-      teacher: 'Dr. Alidoost',
-      unitCount: 3,
-      remainingAssignments: 4,
-      topStudent: 'Ali Alavi',
-      color: Colors.green,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    classData();
+  }
 
-  void _addClass(String title) {
-    setState(() {
-      Color randomColor = _colors[_random.nextInt(_colors.length)];
-      classCards.add(
-        ClassCard(
-          title: title,
-          teacher: 'New Teacher',
-          unitCount: 3,
-          remainingAssignments: 4,
-          topStudent: 'New Student',
-          color: randomColor,
-        ),
-      );
-    });
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  Future<void> classData() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('class~$stuID_info\u0000');
+
+      serverSocket.listen((socketResponse) {
+        response = String.fromCharCodes(socketResponse);
+        print("---------    server response is: { $response }");
+
+        setState(() {
+          _parseResponse(response);
+          isLoading = false;
+          hasError = false;
+        });
+      });
+      await serverSocket.close();
+    } catch (e) {
+      print("Error: $e");
+      setState(() {
+        isLoading = false;
+        hasError = true;
+      });
+    }
+  }
+
+  Future<void> addCourse() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('classAddCourse~$stuID_info~${_textController.text}\u0000');
+
+      serverSocket.listen((socketResponse) {
+        response2 = String.fromCharCodes(socketResponse);
+        print("---------    server response is: { $response2 }");
+        if (response2 == "0") {
+          setState(() {
+            classExists = false;
+            _parseResponse2(response2);
+          });
+        } else if (response2 == "1") {
+          setState(() {
+            alreadyInClass = true;
+            _parseResponse2(response2);
+          });
+        } else {
+          setState(() {
+            classExists = true;
+            alreadyInClass = false;
+            _parseResponse2(response2);
+          });
+        }
+      });
+      await serverSocket.close();
+    } catch (e) {
+      print("Error: $e");
+      setState(() {
+        isLoading = false;
+        hasError = true;
+      });
+    }
+  }
+
+  void _parseResponse(String response) {
+    classCards.clear();
+    final classes = response.split('-');
+    for (var classInfo in classes) {
+      final details = classInfo.split('/');
+      if (details.length == 5) {
+        final title = details[0];
+        final teacher = details[1];
+        final unitCount = int.parse(details[2]);
+        final remainingAssignments = int.parse(details[3]);
+        final topStudent = details[4];
+        final color = Color(0xFF2F1E9D);
+        classCards.add(
+          ClassCard(
+            title: title,
+            teacher: teacher,
+            unitCount: unitCount,
+            remainingAssignments: remainingAssignments,
+            topStudent: topStudent,
+            color: color,
+          ),
+        );
+      }
+    }
+  }
+
+  void _parseResponse2(String response2) {
+    if (classExists && !alreadyInClass) {
+      final details = response2.split('/');
+      if (details.length == 5) {
+        final title = details[0];
+        final teacher = details[1];
+        final unitCount = int.parse(details[2]);
+        final remainingAssignments = int.parse(details[3]);
+        final topStudent = details[4];
+        final color = Color(0xFF2F1E9D);
+        classCards.add(
+          ClassCard(
+            title: title,
+            teacher: teacher,
+            unitCount: unitCount,
+            remainingAssignments: remainingAssignments,
+            topStudent: topStudent,
+            color: color,
+          ),
+        );
+      }
+    } else {
+      if (!classExists) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('This class doesn\'t exist!'),
+          backgroundColor: Colors.red,
+        ));
+      } else if (alreadyInClass) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('You are already enrolled in this class!'),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
   }
 
   void _showAddClassDialog(BuildContext context) {
-    final TextEditingController _textController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add a new class'),
-          content: TextField(
-            controller: _textController,
-            decoration: InputDecoration(
-              hintText: 'Enter Course ID...',
+          backgroundColor: Color(0xFFE6D6FF), // Change this to your desired background color
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Add a new class',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
             ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _textController,
+                decoration: InputDecoration(
+                  hintText: 'Enter Course ID...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFFE6D6FF),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 20,
+                  ),
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () {
-                _addClass(_textController.text);
                 Navigator.of(context).pop();
+                addCourse();
               },
               child: Text('Add'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF2F1E9D),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ],
         );
       },
-    );
+    ).then((_) {
+      // _textController.clear();
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : hasError
+            ? Center(child: Text('Error loading classes'))
+            : ListView(
           children: [
-            Text(
-              'Classes',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.left,
-            ),
             SizedBox(height: 40),
             ...classCards,
           ],
@@ -111,33 +243,6 @@ class _ClassesPageState extends State<ClassesPage> {
         child: Icon(Icons.add),
         tooltip: 'Add a Class',
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   backgroundColor: Colors.deepPurpleAccent,
-      //   selectedItemColor: Colors.black,
-      //   unselectedItemColor: Colors.grey,
-      //   items: const [
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: 'Home',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.work),
-      //       label: 'Todo',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.school),
-      //       label: 'Classes',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.announcement),
-      //       label: 'News',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.assignment),
-      //       label: 'Tasks',
-      //     ),
-      //   ],
-      // ),
     );
   }
 }
@@ -178,8 +283,8 @@ class ClassCard extends StatelessWidget {
               style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 16.0,
               children: [
                 Text(
                   'Units: $unitCount',
@@ -201,4 +306,3 @@ class ClassCard extends StatelessWidget {
     );
   }
 }
-
