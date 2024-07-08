@@ -26,7 +26,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(TID)) {
+                if (info[0].equals(TID)) {
                     return true;
                 }
             }
@@ -36,7 +36,32 @@ public class DB {
         return false;
     }
 
-    public static boolean checkCourseInFile(String Cname) throws Exception {
+    public static String getTeacherFullnameFromFile(String tid) {
+        try {
+            File file = new File(DBPath + "teachersFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(tid)) {
+                    if (!info[2].isEmpty()) {
+                        if (!info[3].isEmpty()) {
+                            return info[2] + " " + info[3];
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static boolean checkCourseInFile(String cid)  {
         try {
             File file = new File(DBPath + "courseFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -47,7 +72,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(Cname)) {
+                if (info[5].equals(cid)) {
                     return true;
                 }
             }
@@ -57,7 +82,49 @@ public class DB {
         return false;
     }
 
-    public static boolean checkAssignmentInFile(String AName, String Cname) throws Exception {
+    public static String getUnitsFromCourse(String cid) {
+        try {
+            File file = new File(DBPath + "courseFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[5].equals(cid)) {
+                    return info[2];
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String getCourseNameFromFile(String cid) {
+        try {
+            File file = new File(DBPath + "courseFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[5].equals(cid)) {
+                    return info[0];
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static boolean checkAssignmentInFile(String AName, String cid) throws Exception {
         try {
             File file = new File(DBPath + "assignmentFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -69,7 +136,7 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[0].equals(AName)) {
-                    if (info[1].equals(Cname)) {
+                    if (info[1].equals(cid)) {
                         return true;
                     }
                 }
@@ -78,6 +145,31 @@ public class DB {
             System.err.println("Error: " + e.getMessage());
         }
         return false;
+    }
+
+    public static int getNumOfActiveAssignmentForCourse(String cid) {
+        try {
+            File file = new File(DBPath + "assignmentFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            int count = 0;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[1].equals(cid)) {
+                    if(info[3].equals("1")) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public static boolean checkStudentInFile(String StudentID) {
@@ -91,17 +183,47 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(StudentID)) {
+                if (info[0].equals(StudentID)) {
                     return true;
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
 
-    public static boolean checkCourseInStudent(String Cname, String StudentID) {
+
+    public static int studentLogIn(String StudentID, String password) {
+        int result = 1;
+        try {
+            File file = new File(DBPath + "studentsFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(StudentID)) {
+                    result = 2;
+                    if (info[1].equals(password)) {
+                        result = 3;
+                        br.close();
+                        return result; //3
+                    }
+                    br.close();
+                    return result; //2
+                }
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result; //1
+    }
+
+    public static boolean checkCourseInStudent(String cid, String StudentID) {
         try {
             File file = new File(DBPath + "studentsFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -115,11 +237,11 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[0].equals(StudentID)) {
-                    if (!info[1].equals("")) {
-                        courseGrade = info[1].split("-");
+                    if (!info[2].equals("")) {
+                        courseGrade = info[2].split("-");
                         for (int i = 0; i < courseGrade.length; i++) {
                             course = courseGrade[i].split("/");
-                            if (course[0].equals(Cname)) {
+                            if (course[0].equals(cid)) {
                                 return true;
                             }
                         }
@@ -131,6 +253,64 @@ public class DB {
         }
         return false;
     }
+
+    public static HashMap<String, Double> listOfStudentsWithCourse(String cid) {
+        try {
+            File file = new File(DBPath + "studentsFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            String[] courseGrade;
+            String[] course;
+            HashMap<String, Double> data = new HashMap<>();
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (!info[2].isEmpty()) {
+                    courseGrade = info[2].split("-");
+                    for (int i = 0; i < courseGrade.length; i++) {
+                        course = courseGrade[i].split("/");
+                        if (course[0].equals(cid)) {
+                            data.put(info[0], Double.parseDouble(course[1]));
+                        }
+                    }
+                }
+            }
+            return data;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String getCoursesFromStudent(String studentID) {
+        try {
+            File file = new File(DBPath + "studentsFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(studentID)) {
+                    if (!info[2].isEmpty()) {
+                        return info[2];
+                    } else {
+                        System.out.println("student doesn't have any courses");
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
 
 //    public static boolean checkStudentInCourse(String Cname, String StudentID) {
 //        try {
@@ -174,8 +354,8 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(Cname)) {
-                    if(!info[1].equals("")) {
+                if (info[0].equals(Cname)) {
+                    if (!info[1].equals("")) {
                         return true;
                     }
                 }
@@ -186,7 +366,7 @@ public class DB {
         return false;
     }
 
-    public static boolean checkTeacherInCourse(String Cname, String TID) {
+    public static String getTeacherFromCourseFile(String cid) {
         try {
             File file = new File(DBPath + "courseFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -197,7 +377,30 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(Cname)) {
+                if (info[5].equals(cid)) {
+                    if (!info[1].isEmpty()) {
+                        return info[1];
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static boolean checkTeacherInCourse(String cid, String TID) {
+        try {
+            File file = new File(DBPath + "courseFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[5].equals(cid)) {
                     if (info[1].equals(TID)) {
                         return true;
                     }
@@ -221,8 +424,8 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(TID)) {
-                    if (!info[1].equals("")) {
+                if (info[0].equals(TID)) {
+                    if (!info[1].isEmpty()) {
                         return true;
                     }
                 }
@@ -235,7 +438,7 @@ public class DB {
         return false;
     }
 
-    public static void saveTeacherToCourse(String Cname, String TID) { // strictly for courses that don't have teachers
+    public static void saveTeacherToCourse(String cid, String TID) { // strictly for courses that don't have teachers
         try {
             File file = new File(DBPath + "courseFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -246,7 +449,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(Cname)) {
+                if (info[5].equals(cid)) {
                     if (info[1].equals("")) {
                         int firstDollarIndex = line.indexOf('$');
                         int secondDollarIndex = line.indexOf('$', firstDollarIndex + 1);
@@ -273,7 +476,7 @@ public class DB {
         }
     }
 
-    public static void deleteTeacherFromCourse(String Cname) {
+    public static void deleteTeacherFromCourse(String cid) {
         try {
             File file = new File(DBPath + "courseFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -284,9 +487,9 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(Cname)) {
+                if (info[5].equals(cid)) {
                     if (!info[1].equals("")) {
-                        line = info[0] + "$$" + info[2] + "$" + info[3] + "$" + info[4]; /*+ "$"+ info[5];*/
+                        line = info[0] + "$$" + info[2] + "$" + info[3] + "$" + info[4] + "$"+ info[5];
                     }
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -320,7 +523,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[1].equals(TID)) {
+                if (info[1].equals(TID)) {
                     line = info[0] + "$$" + info[2] + "$" + info[3] + "$" + info[4]; /*+ "$" + info[5];*/
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -356,7 +559,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(TID)) {
+                if (info[0].equals(TID)) {
                     continue;
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -379,7 +582,8 @@ public class DB {
             System.err.println("Error: " + e.getMessage());
         }
     }
-    public static void saveCourseToTeacher(String TID, String Cname) {
+
+    public static void saveCourseToTeacher(String TID, String cid) {
         try {
             File file = new File(DBPath + "teachersFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -390,12 +594,11 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(TID)) {
-                    if (info[1].equals("")) {
-                        line = info[0] + "$" + Cname + "$" + info[2] + "$" + info[3];
-                    }
-                    else {
-                        line = info[0] + "$" + info[1] + "/" + Cname + "$" + info[2] + "$" + info[3];
+                if (info[0].equals(TID)) {
+                    if (info[1].isEmpty()) {
+                        line = info[0] + "$" + cid + "$" + info[2] + "$" + info[3];
+                    } else {
+                        line = info[0] + "$" + info[1] + "/" + cid + "$" + info[2] + "$" + info[3];
                     }
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -419,7 +622,7 @@ public class DB {
         }
     }
 
-//    public static void gradeStudent(String StudentID, String Cname, String grade) { //////////////////////////////////////
+    //    public static void gradeStudent(String StudentID, String Cname, String grade) { //////////////////////////////////////
 //    public static void gradeStudent(String StudentID, String Cname, String grade) { //////////////////////////////////////
 //        try {
 //            File file = new File(DBPath + "studentsFile.txt");
@@ -439,7 +642,7 @@ public class DB {
 //            System.err.println("Error: " + e.getMessage());
 //        }
 //    }
-    public static void saveCourseToStudent(String StudentID, String Cname, String grade) {
+    public static void saveCourseToStudent(String StudentID, String cid, String grade) {
         try {
             File file = new File(DBPath + "studentsFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -451,11 +654,10 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[0].equals(StudentID)) {
-                    if(info[1].equals("")) {
-                        line = info[0] + "$" + Cname + "/" + grade + "$" + info[2] + "$" + info[3];
-                    }
-                    else {
-                        line = info[0] + "$" + info[1] + "-" + Cname + "/" + grade + "$" + info[2] + "$" + info[3];
+                    if (info[2].equals("")) {
+                        line = info[0] + "$" + info[1] + "$" + cid + "/" + grade + "$" + info[3] + "$" + info[4];
+                    } else {
+                        line = info[0] + "$" + info[1] + "$" + info[2] + "-" + cid + "/" + grade + "$" + info[3] + "$" + info[4];
                     }
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -479,7 +681,7 @@ public class DB {
         }
     }
 
-    public static void changeAssignmentDeadline(String Aname, String Cname, String deadline) {
+    public static void changeAssignmentDeadline(String Aname, String cid, String deadline) {
         try {
             File file = new File(DBPath + "assignmentFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -491,7 +693,7 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[0].equals(Aname)) {
-                    if (info[1].equals(Cname)) {
+                    if (info[1].equals(cid)) {
                         line = info[0] + "$" + info[1] + "$" + deadline + "$" + info[3];
                     }
                 }
@@ -515,7 +717,7 @@ public class DB {
         }
     }
 
-    public static void changeIsActiveInCourse(String Cname, String isActive) {
+    public static void changeIsActiveInCourse(String cid, String isActive) {
         try {
             File file = new File(DBPath + "courseFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -526,8 +728,8 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if (info[0].equals(Cname)) {
-                        line = info[0] + "$" + info[1] + "$" + info[2] + "$" + isActive + "$" + info[4];
+                if (info[5].equals(cid)) {
+                    line = info[0] + "$" + info[1] + "$" + info[2] + "$" + isActive + "$" + info[4] + "$" + info[5];
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
                 fileWriter.write(line + '\n');
@@ -549,11 +751,11 @@ public class DB {
         }
     }
 
-    public static void saveCourseToFile(String Cname, String TID, String Vaheds, String isActive, String examDate/*, String Students*/) {
+    public static void saveCourseToFile(String Cname, String TID, String Vaheds, String isActive, String examDate, String cid) {
         try {
             FileWriter fileWriter = new FileWriter(DBPath + "courseFile.txt", true);
             fileWriter.write('\n');
-            fileWriter.write(Cname + "$" + TID + "$" + Vaheds + "$" + isActive + "$" + examDate /* + "$" + Students*/ );
+            fileWriter.write(Cname + "$" + TID + "$" + Vaheds + "$" + isActive + "$" + examDate + "$" + cid);
             fileWriter.close();
             System.out.println("Course saved to file successfully!");
         } catch (IOException e) {
@@ -573,15 +775,15 @@ public class DB {
         }
     }
 
-    public static void saveStudentToFile(String StudentID, String courses, String Fname, String Lname) {
+    public static void saveStudentToFile(String StudentID, String password, String courses, String Fname, String Lname) {
         try {
             FileWriter fileWriter = new FileWriter(DBPath + "studentsFile.txt", true);
             fileWriter.write('\n');
-            fileWriter.write(StudentID + "$" + courses + "$" + Fname + "$" + Lname);
+            fileWriter.write(StudentID + "$" + password + "$" + courses + "$" + Fname + "$" + Lname);
             fileWriter.close();
             System.out.println("Student saved to file successfully");
         } catch (IOException e) {
-            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -597,7 +799,7 @@ public class DB {
         }
     }
 
-    public static void removeCourseFromTeacherFile(String Cname) {
+    public static void removeCourseFromTeacherFile(String cid) {
         try {
             File file = new File(DBPath + "teachersFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -611,10 +813,10 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 int courseIndex = -1;
                 info = line.split("\\$");
-                if (!info[1].equals("")) {
+                if (!info[1].isEmpty()) {
                     courses = info[1].split("/");
                     for (int i = 0; i < courses.length; i++) {
-                        if(courses[i].equals(Cname)) {
+                        if (courses[i].equals(cid)) {
                             courseIndex = i;
                         }
                     }
@@ -624,8 +826,7 @@ public class DB {
                         for (int i = 0; i < courseIndex; i++) {
                             if (i != courseIndex - 1) {
                                 tempCourses1.append(courses[i]).append("/");
-                            }
-                            else {
+                            } else {
                                 tempCourses1.append(courses[i]);
                             }
 
@@ -633,11 +834,9 @@ public class DB {
                         for (int i = courseIndex + 1; i < courses.length; i++) {
                             if (i == courseIndex + 1) {
                                 tempCourses2.append("/").append(courses[i]).append("/");
-                            }
-                            else if(i != courses.length - 1) {
+                            } else if (i != courses.length - 1) {
                                 tempCourses2.append(courses[i]).append("/");
-                            }
-                            else {
+                            } else {
                                 tempCourses2.append(courses[i]);
                             }
                         }
@@ -668,7 +867,7 @@ public class DB {
         }
     }
 
-    public static void removeCourseFromStudentFile(String Cname) {
+    public static void removeCourseFromStudentFile(String cid) {
         try {
             File file = new File(DBPath + "studentsFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -682,11 +881,11 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if (!info[1].equals("")) {
-                    courseGrade = info[1].split("-");
+                if (!info[2].equals("")) {
+                    courseGrade = info[2].split("-");
                     for (int i = 0; i < courseGrade.length; i++) {
                         course = courseGrade[i].split("/");
-                        if (course[0].equals(Cname)) {
+                        if (course[0].equals(cid)) {
                             courseGradeIndex = i;
                             break;
                         }
@@ -699,12 +898,11 @@ public class DB {
                     for (int i = courseGradeIndex + 1; i < courseGrade.length; i++) {
                         if (i != courseGrade.length - 1) {
                             tempCoursesGrade2.append(courseGrade[i]).append("-");
-                        }
-                        else {
+                        } else {
                             tempCoursesGrade2.append(courseGrade[i]);
                         }
                     }
-                    line = info[0] + "$" + tempCoursesGrade1 + tempCoursesGrade2 + "$" + info[2] + "$" + info[3];
+                    line = info[0] + "$" + info[1] + "$" + tempCoursesGrade1 + tempCoursesGrade2 + "$" + info[3] + "$" + info[4];
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
                 fileWriter.write(line + '\n');
@@ -727,7 +925,7 @@ public class DB {
         }
     }
 
-    public static void removeCourseFromStudent(String StudentID, String Cname) {
+    public static void removeCourseFromStudent(String StudentID, String cid) {
         try {
             File file = new File(DBPath + "studentsFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -742,11 +940,11 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[0].equals(StudentID)) {
-                    if (!info[1].equals("")) {
-                        courseGrade = info[1].split("-");
+                    if (!info[2].equals("")) {
+                        courseGrade = info[2].split("-");
                         for (int i = 0; i < courseGrade.length; i++) {
                             course = courseGrade[i].split("/");
-                            if (course[0].equals(Cname)) {
+                            if (course[0].equals(cid)) {
                                 courseGradeIndex = i;
                                 break;
                             }
@@ -759,12 +957,11 @@ public class DB {
                         for (int i = courseGradeIndex + 1; i < courseGrade.length; i++) {
                             if (i != courseGrade.length - 1) {
                                 tempCoursesGrade2.append(courseGrade[i]).append("-");
-                            }
-                            else {
+                            } else {
                                 tempCoursesGrade2.append(courseGrade[i]);
                             }
                         }
-                        line = info[0] + "$" + tempCoursesGrade1 + tempCoursesGrade2 + "$" + info[2] + "$" + info[3];
+                        line = info[0] + "$" + info[1] + "$" + tempCoursesGrade1 + tempCoursesGrade2 + "$" + info[3] + "$" + info[4];
                     }
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -846,7 +1043,7 @@ public class DB {
 //        }
 //    }
 
-    public static void deleteCourseAssignments(String Cname) {
+    public static void deleteCourseAssignments(String cid) {
         try {
             File file = new File(DBPath + "assignmentFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -857,7 +1054,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if (info[1].equals(Cname)) {
+                if (info[1].equals(cid)) {
                     continue;
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -892,7 +1089,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(StudentID)) {
+                if (info[0].equals(StudentID)) {
                     continue;
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -914,7 +1111,7 @@ public class DB {
         }
     }
 
-    public static void deleteAssignmentFromFile(String Aname, String Cname) {
+    public static void deleteAssignmentFromFile(String Aname, String cid) {
         try {
             File file = new File(DBPath + "assignmentFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -925,8 +1122,8 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(Aname)) {
-                    if (info[1].equals(Cname)) {
+                if (info[0].equals(Aname)) {
+                    if (info[1].equals(cid)) {
                         continue;
                     }
                 }
@@ -950,7 +1147,7 @@ public class DB {
         }
     }
 
-    public static void deleteCourseFromFile(String Cname) {
+    public static void deleteCourseFromFile(String cid) {
         try {
             File file = new File(DBPath + "courseFile.txt");
             FileInputStream fis = new FileInputStream(file);
@@ -961,7 +1158,7 @@ public class DB {
 
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
-                if(info[0].equals(Cname)) {
+                if (info[5].equals(cid)) {
                     continue;
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -985,5 +1182,25 @@ public class DB {
         }
     }
 
+    public static String getStudentFLname(String studentID) {
+        try {
+            File file = new File(DBPath + "studentsFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(studentID)) {
+                    return info[3] + " " + info[4];
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }
