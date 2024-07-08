@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'theme.dart';
 import 'todo_page.dart';
 import 'classes_page.dart';
 import 'news_page.dart';
 import 'tasks_page.dart';
-import 'info.dart'; 
+import 'info.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -13,13 +14,64 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  String response = '';
+  String highestGrade = '';
+  String lowestGrade = '';
+  String upcomingExams = '';
+  String tasksRemaining = '';
+  String missedDeadlines = '';
+
+  @override
+  void initState() {
+    super.initState();
+    homeData();
+  }
+
+  Future<void> homeData() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('home~$stuID_info\u0000');
+
+      serverSocket.listen((socketResponse) {
+        response = String.fromCharCodes(socketResponse);
+        print("---------    server response is: { $response }");
+        setState(() {
+          List<String> parts = response.split('-');
+          if (parts.length == 5) {
+            highestGrade = parts[0];
+            lowestGrade = parts[1];
+            upcomingExams = parts[2];
+            tasksRemaining = parts[3];
+            missedDeadlines = parts[4];
+
+            _children[0] = HomeWidget(
+              highestGrade: highestGrade,
+              lowestGrade: lowestGrade,
+              upcomingExams: upcomingExams,
+              tasksRemaining: tasksRemaining,
+              missedDeadlines: missedDeadlines,
+            );
+          }
+        });
+      });
+        await serverSocket.close();
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
 
   final List<Widget> _children = [
-    HomeWidget(),
-    Kara(), 
+    HomeWidget(
+      highestGrade: '',
+      lowestGrade: '',
+      upcomingExams: '',
+      tasksRemaining: '',
+      missedDeadlines: '',
+    ),
+    Kara(),
     ClassesPage(),
     NewsPage(),
-    AssignmentsPage(), 
+    AssignmentsPage(),
   ];
 
   final List<String> _titles = [
@@ -32,6 +84,9 @@ class _HomePageState extends State<HomePage> {
 
   void onTabTapped(int index) {
     setState(() {
+      if (index == 0) {
+        homeData(); // Update home data when the Home tab is selected
+      }
       _currentIndex = index;
     });
   }
@@ -85,7 +140,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Tasks',
           ),
         ],
-        selectedItemColor: Colors.white, 
+        selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey,
         backgroundColor: Color(0xFF2F1E9D),
         type: BottomNavigationBarType.fixed,
@@ -95,6 +150,20 @@ class _HomePageState extends State<HomePage> {
 }
 
 class HomeWidget extends StatelessWidget {
+  final String highestGrade;
+  final String lowestGrade;
+  final String upcomingExams;
+  final String tasksRemaining;
+  final String missedDeadlines;
+
+  HomeWidget({
+    required this.highestGrade,
+    required this.lowestGrade,
+    required this.upcomingExams,
+    required this.tasksRemaining,
+    required this.missedDeadlines,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -102,11 +171,6 @@ class HomeWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 60),
-          const Text(
-            'Summary',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
           const SizedBox(height: 20),
           GridView.count(
             crossAxisCount: 3,
@@ -114,11 +178,11 @@ class HomeWidget extends StatelessWidget {
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
             children: [
-              summaryCard(Icons.star, 'Highest grade : 19.25'),
-              summaryCard(Icons.heart_broken, 'Upcoming Exams: 2'),
-              summaryCard(Icons.access_alarm, 'Tasks remaining: 3'),
-              summaryCard(Icons.access_time, 'Missed deadlines: 1'),
-              summaryCard(Icons.sentiment_dissatisfied, 'Lowest grade: 12'),
+              summaryCard(Icons.star, 'Highest grade: $highestGrade'),
+              summaryCard(Icons.heart_broken, 'Upcoming Exams: $upcomingExams'),
+              summaryCard(Icons.access_alarm, 'Tasks remaining: $tasksRemaining'),
+              summaryCard(Icons.access_time, 'Missed deadlines: $missedDeadlines'),
+              summaryCard(Icons.sentiment_dissatisfied, 'Lowest grade: $lowestGrade'),
             ],
           ),
           const SizedBox(height: 20),
@@ -184,19 +248,4 @@ class HomeWidget extends StatelessWidget {
   }
 }
 
-class PersonalInfoPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Personal Info'),
-      ),
-      body: Center(
-        child: Text(
-          'Personal Info Page',
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
-    );
-  }
-}
+
