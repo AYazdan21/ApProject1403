@@ -50,7 +50,7 @@ class ClientHandler extends Thread {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         super.run();
         String command;
 
@@ -65,6 +65,8 @@ class ClientHandler extends Thread {
         for (String s : split) {
             System.out.println(s);
         }
+
+//        String[][] courseUnit;
 
         switch (split[0]) {
             case "login": {
@@ -138,7 +140,150 @@ class ClientHandler extends Thread {
                         e.printStackTrace();
                     }
                 }
+                break;
             }
+            case "name": {
+                //info~stuID
+                String fullname = DB.getStudentFLname(split[1]);
+                System.out.println("found student name");
+                try {
+                    writer(fullname);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+            case "units": {
+                //units~stuID
+                int numUnits = 0;
+                String studentCourses = DB.getCoursesFromStudent(split[1]);
+                if (studentCourses != null) {
+                    String[] coursesSeparate = studentCourses.split("-");
+                    String[][] courseidUnit = new String[coursesSeparate.length][2];
+                    for (int i = 0; i < coursesSeparate.length; i++) {
+                        String[] courseGrade = coursesSeparate[i].split("/");
+                        courseidUnit[i][0] = courseGrade[0];
+                        courseidUnit[i][1] = DB.getUnitsFromCourse(courseidUnit[i][0]);
+                        if (courseidUnit[i][1] != null) {
+                            numUnits += Integer.parseInt(courseidUnit[i][1]);
+                        }
+                    }
+
+                    System.out.println("calculated number of units");
+                    try {
+                        writer(String.valueOf(numUnits));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("student doesn't have any courses");
+                }
+                break;
+            }
+//            case "grade": {
+//                //grade~stuID
+//
+//
+//                break;
+//            }
+            case "class": {
+                //class~stuID
+                String studentCourses = DB.getCoursesFromStudent(split[1]);
+                if (studentCourses != null) {
+                    String[] coursesSeparate = studentCourses.split("-");
+                    String[][] courseidUnit = new String[coursesSeparate.length][2]; /////////
+                    //courseUnit[][0] == course id    courseUnit[][1] == number of units
+                    String[] cTeacherID = new String[courseidUnit.length];
+                    String[] cTeacherName = new String[courseidUnit.length];
+                    String[] cName = new String[courseidUnit.length];
+                    int[] cRemainingTasks = new int[courseidUnit.length];
+
+                    for (int i = 0; i < coursesSeparate.length; i++) {
+                        String[] courseGrade = coursesSeparate[i].split("/");
+                        courseidUnit[i][0] = courseGrade[0];
+                        courseidUnit[i][1] = DB.getUnitsFromCourse(courseidUnit[i][0]);
+                        cName[i] = DB.getCourseNameFromFile(courseidUnit[i][0]);
+                        cTeacherID[i] = DB.getTeacherFromCourseFile(courseidUnit[i][0]);
+                        cTeacherName[i] = DB.getTeacherFullnameFromFile(cTeacherID[i]); /////////
+                        cRemainingTasks[i] = DB.getNumOfActiveAssignmentForCourse(courseidUnit[i][0]);
+                    }
+
+                    String[] cTopStudent = new String[courseidUnit.length];
+                    for (int i = 0; i < coursesSeparate.length; i++) {
+                        Map<String, Double> studentGrade = new HashMap<>(DB.listOfStudentsWithCourse(courseidUnit[i][0]));
+                        String maxKey = null;
+                        double max = -1;
+                        for (Map.Entry<String, Double> entry : studentGrade.entrySet()) {
+                            if (entry.getValue() > max) {
+                                max = entry.getValue();
+                                maxKey = entry.getKey();
+                            }
+                        }
+                        cTopStudent[i] = DB.getStudentFLname(maxKey);
+                    }
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < courseidUnit.length; i++) {
+                        sb.append(cName[i]).append("/").append(cTeacherName[i]).append("/").append(courseidUnit[i][1]).append("/").append(cRemainingTasks[i]).append("/").append(cTopStudent[i]);
+                        if (i != courseidUnit.length - 1) {
+                            sb.append("-");
+                        }
+                    }
+                    try {
+                        writer(sb.toString());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            }
+            case "classAddCourse": {
+                //classAddCourse~stuID~cid
+                if (DB.checkCourseInFile(split[2])) {
+                    if (!DB.checkCourseInStudent(split[2], split[1])) {
+                        DB.saveCourseToStudent(split[1], split[2], "00.00");
+                        String cName = DB.getCourseNameFromFile(split[2]);
+                        String cTeacherID = DB.getTeacherFromCourseFile(split[2]);
+                        String cTeacherName = DB.getTeacherFullnameFromFile(cTeacherID);
+                        String cUnits = DB.getUnitsFromCourse(split[2]);
+                        int cRemainingTasks = DB.getNumOfActiveAssignmentForCourse(split[2]);
+                        String cTopStudent;
+                        Map<String, Double> studentGrade = new HashMap<>(DB.listOfStudentsWithCourse(split[2]));
+                        String maxKey = null;
+                        double max = -1;
+                        for (Map.Entry<String, Double> entry : studentGrade.entrySet()) {
+                            if (entry.getValue() > max) {
+                                max = entry.getValue();
+                                maxKey = entry.getKey();
+                            }
+                        }
+                        cTopStudent = DB.getStudentFLname(maxKey);
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(cName).append("/").append(cTeacherName).append("/").append(cUnits).append("/").append(cRemainingTasks).append("/").append(cTopStudent);
+                        try {
+                            writer(sb.toString());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        System.out.println("student already enrolled in course");
+                        try {
+                            writer("1");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                } else {
+                    System.out.println("course doesn't exist");
+                    try {
+                        writer("0");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            }
+
         }
     }
 }
