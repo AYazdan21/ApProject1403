@@ -153,9 +153,10 @@ class ClientHandler extends Thread {
                 }
                 break;
             }
-            case "units": {
-                //units~stuID
+            case "unitGrades": {
+                //unitGrades~stuID
                 int numUnits = 0;
+                double sum = 0;
                 String studentCourses = DB.getCoursesFromStudent(split[1]);
                 if (studentCourses != null) {
                     String[] coursesSeparate = studentCourses.split("-");
@@ -166,12 +167,14 @@ class ClientHandler extends Thread {
                         courseidUnit[i][1] = DB.getUnitsFromCourse(courseidUnit[i][0]);
                         if (courseidUnit[i][1] != null) {
                             numUnits += Integer.parseInt(courseidUnit[i][1]);
+                            sum += Double.parseDouble(courseGrade[1]) * Integer.parseInt(courseidUnit[i][1]);
                         }
                     }
-
+                    double grade = sum / numUnits;
                     System.out.println("calculated number of units");
+                    System.out.println("calculated grade");
                     try {
-                        writer(String.valueOf(numUnits));
+                        writer(String.valueOf(numUnits) + "-" + grade);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -180,12 +183,6 @@ class ClientHandler extends Thread {
                 }
                 break;
             }
-//            case "grade": {
-//                //grade~stuID
-//
-//
-//                break;
-//            }
             case "class": {
                 //class~stuID
                 String studentCourses = DB.getCoursesFromStudent(split[1]);
