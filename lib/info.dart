@@ -1,7 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ap_flutter/login_page.dart';
 
 String fullName_info = '';
 String stuID_info = '';
@@ -20,6 +20,7 @@ class InfoPage extends StatefulWidget {
 class _InfoPageState extends State<InfoPage> {
   String response = '';
   String response2 = '';
+  String response3 = '';
 
   @override
   void initState() {
@@ -68,6 +69,68 @@ class _InfoPageState extends State<InfoPage> {
     } catch (e) {
       print("Error: $e");
     }
+  }
+
+  Future<void> changePassword() async {
+    // Add your password change logic here
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('deleteAccount~$stuID_info\u0000');
+
+      serverSocket.listen((socketResponse) {
+        response3 = String.fromCharCodes(socketResponse);
+        print("---------    server response is: { $response3 }");
+
+        if (response3 == "account deleted") {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+        }
+      });
+      await serverSocket.flush();
+      serverSocket.close();
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          title: const Text(
+            'Confirm Deletion',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 26, color: Colors.redAccent),
+          ),
+          content: const Text(
+            'Are you sure you want to delete your account? This action cannot be undone.',
+            textDirection: TextDirection.ltr,
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () {
+                deleteAccount();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -124,7 +187,7 @@ class _InfoPageState extends State<InfoPage> {
                             SizedBox(height: heightOfScreen * 0.11),
                             GestureDetector(
                               onTap: () {
-                                // Handle delete account logic
+                                _showDeleteAccountDialog(context);
                               },
                               child: Container(
                                 width: widthOfScreen * 0.83,
