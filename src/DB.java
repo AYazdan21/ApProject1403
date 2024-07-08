@@ -1,7 +1,10 @@
 import java.io.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.time.LocalDateTime;
- 
+
 public class DB {
     public static String DBPath = "C:\\Users\\Amirreza Yazdanpanah\\Desktop\\ApProject1403\\data\\";
 
@@ -103,6 +106,27 @@ public class DB {
         return null;
     }
 
+    public static String getExamDateFromCourse(String cid) {
+        try {
+            File file = new File(DBPath + "courseFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[5].equals(cid)) {
+                    return info[4];
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static String getCourseNameFromFile(String cid) {
         try {
             File file = new File(DBPath + "courseFile.txt");
@@ -162,6 +186,74 @@ public class DB {
                 if (info[1].equals(cid)) {
                     if(info[3].equals("1")) {
                         count++;
+                    }
+                }
+            }
+            return count;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public static int getNumOfRemainingAssignmentsForCourse(String cid) {
+        try {
+            File file = new File(DBPath + "assignmentFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            int count = 0;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[1].equals(cid)) {
+                    if (info[3].equals("1")) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        try {
+                            LocalDate assignmentDate = LocalDate.parse(info[2], formatter);
+                            LocalDate today = LocalDate.now();
+                            if (assignmentDate.isAfter(today)) {
+                                count++;
+                            }
+                        } catch (DateTimeParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return count;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public static int getNumOfMissedAssignmentsForCourse(String cid) {
+        try {
+            File file = new File(DBPath + "assignmentFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            int count = 0;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[1].equals(cid)) {
+                    if (info[3].equals("1")) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        try {
+                            LocalDate assignmentDate = LocalDate.parse(info[2], formatter);
+                            LocalDate today = LocalDate.now();
+                            if (assignmentDate.isBefore(today)) {
+                                count++;
+                            }
+                        } catch (DateTimeParseException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
