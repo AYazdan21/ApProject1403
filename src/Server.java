@@ -1,3 +1,6 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -183,6 +186,71 @@ class ClientHandler extends Thread {
                 }
                 break;
             }
+            case "home": {
+                //home~stuID
+                double highestGrade = 0;
+                double lowestGrade = 0;
+                int upcomingExams = 0;
+                int tasksRemaining = 0;
+                int missedDeadlines = 0;
+                String studentCourses = DB.getCoursesFromStudent(split[1]);
+                double max = -1;
+                double min = 21;
+                if (studentCourses != null) {
+                    String[] coursesSeparate = studentCourses.split("-");
+                    for (int i = 0; i < coursesSeparate.length; i++) {
+                        String[] courseGrade = coursesSeparate[i].split("/");
+                        String cid = courseGrade[0];
+                        tasksRemaining += DB.getNumOfRemainingAssignmentsForCourse(cid);
+                        missedDeadlines += DB.getNumOfMissedAssignmentsForCourse(cid);
+                        String cExamDate = DB.getExamDateFromCourse(cid);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        try {
+                            LocalDate examDate = LocalDate.parse(cExamDate, formatter);
+                            LocalDate today = LocalDate.now();
+                            if (examDate.isAfter(today)) {
+                                upcomingExams++;
+                            }
+                        } catch (DateTimeParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (Double.parseDouble(courseGrade[1]) > max) {
+                            max = Double.parseDouble(courseGrade[1]);
+                        }
+                        if (Double.parseDouble(courseGrade[1]) < min) {
+                            min = Double.parseDouble(courseGrade[1]);
+                        }
+                    }
+                    highestGrade = max;
+                    lowestGrade = min;
+                    try {
+                        writer(String.valueOf(highestGrade) + "-" + String.valueOf(lowestGrade) + "-" + String.valueOf(upcomingExams) + "-" + String.valueOf(tasksRemaining) + "-" + String.valueOf(missedDeadlines));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("student doesn't have any courses to assess");
+                    try {
+                        writer("0-0-0-0-0");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+
+            }
+            case "deleteAccount": {
+                //deleteAccount~stuID
+                DB.deleteStudentFromFile(split[1]);
+                try {
+                    writer("account deleted");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                break;
+            }
             case "class": {
                 //class~stuID
                 String studentCourses = DB.getCoursesFromStudent(split[1]);
@@ -280,6 +348,7 @@ class ClientHandler extends Thread {
                 }
                 break;
             }
+
 
         }
     }
