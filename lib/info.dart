@@ -1,12 +1,74 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'theme.dart'; // Import the theme file
 
-class InfoPage extends StatelessWidget {
+String fullName_info = '';
+String stuID_info = '';
+String password_info = '';
+int units_info = 0;
+double grade_info = 00.00;
+
+class InfoPage extends StatefulWidget {
   static const Color backGroundTheme = Color(0xFF2F1E9D);
   static const Color contextThemeColor = Color(0xfff9f8fe);
 
-  const InfoPage({super.key});
+  @override
+  _InfoPageState createState() => _InfoPageState();
+}
+
+class _InfoPageState extends State<InfoPage> {
+  String response = '';
+  String response2 = '';
+
+  @override
+  void initState() {
+    super.initState();
+    name();
+    unitGrade();
+  }
+
+  Future<void> name() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('name~$stuID_info\u0000');
+
+      serverSocket.listen((socketResponse) {
+        response = String.fromCharCodes(socketResponse);
+        print("---------    server response is: { $response }");
+        setState(() {
+          fullName_info = response;
+        });
+      });
+      await serverSocket.flush();
+      serverSocket.close();
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
+  Future<void> unitGrade() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('unitGrades~$stuID_info\u0000');
+
+      serverSocket.listen((socketResponse) {
+        response2 = String.fromCharCodes(socketResponse);
+        print("---------    server response is: { $response2 }");
+        setState(() {
+          List<String> parts = response2.split('-');
+          if (parts.length == 2) {
+            units_info = int.parse(parts[0]);
+            grade_info = double.parse(parts[1]);
+          }
+        });
+      });
+      await serverSocket.flush();
+      serverSocket.close();
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +76,7 @@ class InfoPage extends StatelessWidget {
     double widthOfScreen = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: backGroundTheme,
+      backgroundColor: InfoPage.backGroundTheme,
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return SingleChildScrollView(
@@ -32,9 +94,9 @@ class InfoPage extends StatelessWidget {
                           SizedBox(height: heightOfScreen * 0.1),
                           _buildProfileImage(),
                           const SizedBox(height: 15),
-                          const Text(
-                            "Amirreza Yazdanpanah",
-                            style: TextStyle(
+                          Text(
+                            fullName_info,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 25,
                               fontWeight: FontWeight.w500,
@@ -48,7 +110,7 @@ class InfoPage extends StatelessWidget {
                         width: widthOfScreen,
                         padding: const EdgeInsets.all(30),
                         decoration: const BoxDecoration(
-                          color: contextThemeColor,
+                          color: InfoPage.contextThemeColor,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(50),
                             topRight: Radius.circular(50),
@@ -60,28 +122,33 @@ class InfoPage extends StatelessWidget {
                             const SizedBox(height: 32),
                             _buildActionsCard(context, widthOfScreen, heightOfScreen),
                             SizedBox(height: heightOfScreen * 0.11),
-                            Container(
-                              width: widthOfScreen * 0.83,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                color: backGroundTheme,
-                                borderRadius: BorderRadius.all(Radius.circular(15)),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  "Delete Account",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w400,
+                            GestureDetector(
+                              onTap: () {
+                                // Handle delete account logic
+                              },
+                              child: Container(
+                                width: widthOfScreen * 0.83,
+                                height: 50,
+                                decoration: const BoxDecoration(
+                                  color: InfoPage.backGroundTheme,
+                                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    "Delete Account",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w400,
+                                    ),
                                   ),
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -98,7 +165,7 @@ class InfoPage extends StatelessWidget {
       width: 145,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: contextThemeColor,
+        color: InfoPage.contextThemeColor,
       ),
       child: Image.asset(
         'images/Default_pfp.png',
@@ -119,21 +186,21 @@ class InfoPage extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 23),
-          _buildInfoRow("Student Number", "402243113", 95),
+          _buildInfoRow("Student Number", stuID_info),
           const SizedBox(height: 10),
           _buildDivider(),
           const SizedBox(height: 10),
-          _buildInfoRow("Units", "16", 235),
+          _buildInfoRow("Units", units_info.toString()),
           const SizedBox(height: 10),
           _buildDivider(),
           const SizedBox(height: 10),
-          _buildInfoRow("Grade", "18.61", 210),
+          _buildInfoRow("Grade", grade_info.toString()),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String title, String value, double spacing) {
+  Widget _buildInfoRow(String title, String value) {
     return Row(
       children: [
         const SizedBox(width: 22),
@@ -145,12 +212,17 @@ class InfoPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(width: spacing),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.black45,
-            fontSize: 16,
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black45,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.end,
+            ),
           ),
         ),
       ],
@@ -245,7 +317,7 @@ class InfoPage extends StatelessWidget {
                   Navigator.of(context).pop();
                 },
               ),
-            )
+            ),
           ],
         );
       },
@@ -295,7 +367,6 @@ class InfoPage extends StatelessWidget {
             TextButton(
               child: const Text('Submit'),
               onPressed: () {
-                // Handle password change logic here
                 String currentPassword = currentPasswordController.text;
                 String newPassword = newPasswordController.text;
 
