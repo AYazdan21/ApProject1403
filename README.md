@@ -1,7 +1,7 @@
 Advanced Programming Project, Spring 2024
 
 
-"Daneshjooyar" mobile app
+Golestan schooling system application
 
 
 This app is written in Flutter and Java in wich each student can handle their assignments and manage their tasks properly.
