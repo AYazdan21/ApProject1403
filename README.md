@@ -7,7 +7,7 @@ Golestan schooling system application
 This app is written in Flutter and Java in wich each student can handle their assignments and manage their tasks properly.
 
 
-It contains different pages such as Login Page, Home Page, Assignment Page, News Page, Birthdays Page, Ranking Page, Courses Page, and Profile Page.
+It contains different pages such as Login Page, Home Page, Assignment Page, News Page, Birthdays Page, Courses Page, and Profile Page.
 
 All is written in Dart except server that is written in Java.
 
