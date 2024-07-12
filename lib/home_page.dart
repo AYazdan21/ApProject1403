@@ -6,6 +6,8 @@ import 'classes_page.dart';
 import 'news_page.dart';
 import 'tasks_page.dart';
 import 'info.dart';
+import 'news_handler.dart';
+import 'news_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -20,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   String upcomingExams = '';
   String tasksRemaining = '';
   String missedDeadlines = '';
+  List<Task> currentTasks = [];
 
   @override
   void initState() {
@@ -37,7 +40,7 @@ class _HomePageState extends State<HomePage> {
         print("---------    server response is: { $response }");
         setState(() {
           List<String> parts = response.split('-');
-          if (parts.length == 5) {
+          if (parts.length >= 5) {
             highestGrade = parts[0];
             lowestGrade = parts[1];
             upcomingExams = parts[2];
@@ -50,15 +53,46 @@ class _HomePageState extends State<HomePage> {
               upcomingExams: upcomingExams,
               tasksRemaining: tasksRemaining,
               missedDeadlines: missedDeadlines,
+              currentTasks: currentTasks,
             );
           }
         });
       });
-        await serverSocket.close();
+      await serverSocket.close();
+      await fetchCurrentTasks();
     } catch (e) {
       print("Error: $e");
     }
   }
+
+  Future<void> fetchCurrentTasks() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('todos~$stuID_info\u0000');
+
+      serverSocket.listen((socketResponse) {
+        final tasksResponse = String.fromCharCodes(socketResponse);
+        print("---------    tasks response is: { $tasksResponse }");
+        setState(() {
+          List<String> rawTasks = tasksResponse.split(',');
+          currentTasks = rawTasks.map((task) {
+            List<String> taskParts = task.split('/');
+            return Task(title: taskParts[0], deadline: taskParts[2]);
+          }).toList();
+          if (currentTasks.length > 2) {
+            currentTasks = currentTasks.sublist(0, 2);
+          }
+        });
+      });
+
+      await serverSocket.close();
+      // Call setState here to trigger UI rebuild after currentTasks is updated
+      setState(() {});
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
 
   final List<Widget> _children = [
     HomeWidget(
@@ -67,10 +101,11 @@ class _HomePageState extends State<HomePage> {
       upcomingExams: '',
       tasksRemaining: '',
       missedDeadlines: '',
+      currentTasks: [],
     ),
     Kara(),
     ClassesPage(),
-    NewsPage(),
+    NewsScreen(),
     AssignmentsPage(),
   ];
 
@@ -149,12 +184,20 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+class Task {
+  final String title;
+  final String deadline;
+
+  Task({required this.title, required this.deadline});
+}
+
 class HomeWidget extends StatelessWidget {
   final String highestGrade;
   final String lowestGrade;
   final String upcomingExams;
   final String tasksRemaining;
   final String missedDeadlines;
+  final List<Task> currentTasks;
 
   HomeWidget({
     required this.highestGrade,
@@ -162,6 +205,7 @@ class HomeWidget extends StatelessWidget {
     required this.upcomingExams,
     required this.tasksRemaining,
     required this.missedDeadlines,
+    required this.currentTasks,
   });
 
   @override
@@ -191,18 +235,19 @@ class HomeWidget extends StatelessWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          taskCard('DLD - HW1', false),
-          const SizedBox(height: 5),
-          taskCard('AP - HW6', false),
+          for (Task task in currentTasks) ...[
+            taskCard(task.title, task.deadline, false),
+            const SizedBox(height: 5),
+          ],
           const SizedBox(height: 20),
           const Text(
             'Completed Tasks',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          taskCard('DS - HW3', true),
+          taskCard('HW1 - AP', 'Deadline: 2024-06-21', true),
           const SizedBox(height: 5),
-          taskCard('AP - HW5', true),
+          taskCard('HW3 - DLD', 'Deadline: 2024-07-24', true),
         ],
       ),
     );
@@ -227,7 +272,7 @@ class HomeWidget extends StatelessWidget {
     );
   }
 
-  Widget taskCard(String text, bool isDone) {
+  Widget taskCard(String title, String deadline, bool isDone) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -237,7 +282,13 @@ class HomeWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(text),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title),
+              Text(deadline, style: TextStyle(color: Colors.grey)),
+            ],
+          ),
           Icon(
             isDone ? Icons.check_circle : Icons.cancel,
             color: isDone ? Colors.green : Colors.red,
@@ -247,5 +298,3 @@ class HomeWidget extends StatelessWidget {
     );
   }
 }
-
-
