@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
+import 'theme.dart'; // Import the theme file
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +43,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignupPage(),
+      },
     );
   }
 }
