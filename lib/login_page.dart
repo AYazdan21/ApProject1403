@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home_page.dart'; 
+import 'home_page.dart';
+import 'info.dart';
+
 
 class LoginPage extends StatefulWidget {
   @override
@@ -163,6 +165,8 @@ class _LoginPageState extends State<LoginPage> {
             stuIDChecker = true;
             passwordChecker = true;
           });
+          stuID_info = _stuNumController.text;
+          password_info = _passwordController.text;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => HomePage()),
