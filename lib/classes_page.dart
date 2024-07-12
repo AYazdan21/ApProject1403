@@ -65,11 +65,13 @@ class _ClassesPageState extends State<ClassesPage> {
         if (response2 == "0") {
           setState(() {
             classExists = false;
+            alreadyInClass = false;
             _parseResponse2(response2);
           });
         } else if (response2 == "1") {
           setState(() {
             alreadyInClass = true;
+            classExists = true;
             _parseResponse2(response2);
           });
         } else {
@@ -157,7 +159,7 @@ class _ClassesPageState extends State<ClassesPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Color(0xFFE6D6FF), // Change this to your desired background color
+          backgroundColor: Color(0xFFFBF2FF), // Change this to your desired background color
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -179,7 +181,7 @@ class _ClassesPageState extends State<ClassesPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   filled: true,
-                  fillColor: Color(0xFFE6D6FF),
+                  fillColor: Color(0xFFFBF2FF),
                   contentPadding: EdgeInsets.symmetric(
                     vertical: 15,
                     horizontal: 20,
@@ -231,16 +233,17 @@ class _ClassesPageState extends State<ClassesPage> {
             ? Center(child: Text('Error loading classes'))
             : ListView(
           children: [
-            SizedBox(height: 40),
+            SizedBox(height: 20),
             ...classCards,
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF2F1E9D),
         onPressed: () {
           _showAddClassDialog(context);
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.add, color: Colors.white,),
         tooltip: 'Add a Class',
       ),
     );
