@@ -148,6 +148,27 @@ public class DB {
         return null;
     }
 
+    public static String getCourseIDfromName(String cname) {
+        try {
+            File file = new File(DBPath + "courseFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(cname)) {
+                    return info[5];
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static boolean checkAssignmentInFile(String AName, String cid) throws Exception {
         try {
             File file = new File(DBPath + "assignmentFile.txt");
@@ -184,7 +205,7 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[1].equals(cid)) {
-                    if(info[3].equals("1")) {
+                    if(info[4].equals("1")) {
                         count++;
                     }
                 }
@@ -194,6 +215,29 @@ public class DB {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public static String getAssignmentDataForCourse(String cid) {
+        try {
+            File file = new File(DBPath + "assignmentFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[1].equals(cid)) {
+                    sb.append(info[0]).append("/").append(getCourseNameFromFile(info[1])).append("/").append(info[2]).append("/").append(info[3]).append("/").append(info[4]).append(",");
+                }
+            }
+            return sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static int getNumOfRemainingAssignmentsForCourse(String cid) {
@@ -209,7 +253,7 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[1].equals(cid)) {
-                    if (info[3].equals("1")) {
+                    if (info[4].equals("1")) {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                         try {
                             LocalDate assignmentDate = LocalDate.parse(info[2], formatter);
@@ -230,6 +274,199 @@ public class DB {
         return 0;
     }
 
+    public static StringBuilder getBirthdaysToday() {
+        try {
+            File file = new File(DBPath + "birthday.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                try {
+                    LocalDate birthday = LocalDate.parse(info[1], formatter);
+                    LocalDate today = LocalDate.now();
+                    if (birthday.isEqual(today)) {
+                        sb.append(info[0]).append(",");
+                    }
+                } catch (DateTimeParseException e) {
+                    e.printStackTrace();
+                }
+            }
+            return sb;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String getStudentTodos(String studentID) {
+        try {
+            File file = new File(DBPath + "todoFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(studentID)) {
+                    if(!info[1].isEmpty()) {
+                        return info[1];
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void updateStudentTodo(String studentID, String taskName, String status) {
+        try {
+            File file = new File(DBPath + "todoFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(studentID)) {
+                    String[] tasksData = info[1].split(",");
+                    for (int i = 0; i < tasksData.length; i++) {
+                        String[] singleData = tasksData[i].split("/");
+                        if (singleData[0].equals(taskName)) {
+                            if (i != tasksData.length - 1) {
+                                tasksData[i] = singleData[0] + "/" + singleData[1] + "/" + singleData[2] + "/" + status + ",";
+                            } else {
+                                tasksData[i] = singleData[0] + "/" + singleData[1] + "/" + singleData[2] + "/" + status;
+                            }
+
+                        }
+                    }
+                    for (int i = 0; i < tasksData.length - 1; i++) {
+                        tasksData[i] += ",";
+                    }
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < tasksData.length; i++) {
+                        sb.append(tasksData[i]);
+                    }
+                    line = info[0] + "$" + sb.toString() + "$";
+                }
+                FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+
+            PrintWriter writer = new PrintWriter(file);
+            writer.close();
+
+            BufferedReader br2 = new BufferedReader(new FileReader(DBPath + "temp.txt"));
+            while ((line = br2.readLine()) != null) {
+                FileWriter fileWriter = new FileWriter(DBPath + "todoFile.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+            clearTempFile();
+            } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addTodoToStudent(String studentID, String taskName, String taskDate, String taskTime) {
+        try {
+            File file = new File(DBPath + "todoFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            StringBuilder sb =  new StringBuilder();
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(studentID)) {
+                    sb.append(info[1]).append(",").append(taskName + "/" + taskDate + "/" + taskTime + "/1");
+                    line = info[0] + "$" + sb.toString() + "$";
+                }
+                FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+            PrintWriter writer = new PrintWriter(file);
+            writer.close();
+
+            BufferedReader br2 = new BufferedReader(new FileReader(DBPath + "temp.txt"));
+            while ((line = br2.readLine()) != null) {
+                FileWriter fileWriter = new FileWriter(DBPath + "todoFile.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+            clearTempFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteTodo(String studentID, String taskName) {
+        try {
+            File file = new File(DBPath + "todoFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+            int index = 0;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(studentID)) {
+                    String[] tasksData = info[1].split(",");
+                    for (int i = 0; i < tasksData.length; i++) {
+                        String[] singleData = tasksData[i].split("/");
+                        if (singleData[0].equals(taskName)) {
+                            index = i;
+                        }
+                    }
+                    for (int i = 0; i < tasksData.length; i++) {
+                        if (i != index) {
+                            if (i != tasksData.length -1) {
+                                sb.append(tasksData[i]).append(",");
+                            }
+                            else {
+                                sb.append(tasksData[i]);
+                            }
+                        }
+                    }
+                    line = info[0] + "$" + sb.toString() + "$";
+                }
+                FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+            PrintWriter writer = new PrintWriter(file);
+            writer.close();
+
+            BufferedReader br2 = new BufferedReader(new FileReader(DBPath + "temp.txt"));
+            while ((line = br2.readLine()) != null) {
+                FileWriter fileWriter = new FileWriter(DBPath + "todoFile.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+            clearTempFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static int getNumOfMissedAssignmentsForCourse(String cid) {
         try {
             File file = new File(DBPath + "assignmentFile.txt");
@@ -243,7 +480,7 @@ public class DB {
             while ((line = br.readLine()) != null) {
                 info = line.split("\\$");
                 if (info[1].equals(cid)) {
-                    if (info[3].equals("1")) {
+                    if (info[4].equals("1")) {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                         try {
                             LocalDate assignmentDate = LocalDate.parse(info[2], formatter);
@@ -786,7 +1023,7 @@ public class DB {
                 info = line.split("\\$");
                 if (info[0].equals(Aname)) {
                     if (info[1].equals(cid)) {
-                        line = info[0] + "$" + info[1] + "$" + deadline + "$" + info[3];
+                        line = info[0] + "$" + info[1] + "$" + deadline + "$" + info[3] + "$" + info[4];
                     }
                 }
                 FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
@@ -808,6 +1045,47 @@ public class DB {
             System.err.println("Error: " + e.getMessage());
         }
     }
+
+    public static void changeIsActiveInAssignment(String aName, String cid) {
+        try {
+            File file = new File(DBPath + "assignmentFile.txt");
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+
+            String line;
+            String[] info;
+
+            while ((line = br.readLine()) != null) {
+                info = line.split("\\$");
+                if (info[0].equals(aName)) {
+                    if (info[1].equals(cid)) {
+                        if (info[4].equals("0")) {
+                            line = info[0] + "$" + info[1] + "$" + info[2] + "$" + info[3] + "$" + "1";
+                        } else if (info[4].equals("1")) {
+                            line = info[0] + "$" + info[1] + "$" + info[2] + "$" + info[3] + "$" + "0";
+                        }
+                    }
+                }
+                FileWriter fileWriter = new FileWriter(DBPath + "temp.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+            PrintWriter writer = new PrintWriter(file);
+            writer.close();
+
+            BufferedReader br3 = new BufferedReader(new FileReader(DBPath + "temp.txt"));
+            while ((line = br3.readLine()) != null) {
+                FileWriter fileWriter = new FileWriter(DBPath + "assignmentFile.txt", true);
+                fileWriter.write(line + '\n');
+                fileWriter.close();
+            }
+            clearTempFile();
+            System.out.println("Change successful!");
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
 
     public static void changeIsActiveInCourse(String cid, String isActive) {
         try {
@@ -855,11 +1133,11 @@ public class DB {
         }
     }
 
-    public static void saveAssignmentToFile(String Aname, String Cname, String deadline, String isActive) {
+    public static void saveAssignmentToFile(String Aname, String cid, String deadline, String description, String isActive) {
         try {
             FileWriter fileWriter = new FileWriter(DBPath + "assignmentFile.txt", true);
             fileWriter.write('\n');
-            fileWriter.write(Aname + "$" + Cname + "$" + deadline + "$" + isActive);
+            fileWriter.write(Aname + "$" + cid + "$" + deadline + "$" + description + "$" + isActive);
             fileWriter.close();
             System.out.println("Assignment saved to file successfully!");
         } catch (IOException e) {
