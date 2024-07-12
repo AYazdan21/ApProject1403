@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
-
+import 'dart:io';
+import 'info.dart';
 
 class TaskModel {
   final String id;
@@ -9,7 +9,6 @@ class TaskModel {
   final DateTime deadline;
   DateTime? reminder;
   bool isDone;
-  bool isCompleted;
 
   TaskModel({
     required this.id,
@@ -17,7 +16,6 @@ class TaskModel {
     required this.deadline,
     this.reminder,
     this.isDone = false,
-    this.isCompleted = false,
   });
 }
 
@@ -28,40 +26,106 @@ class Kara extends StatefulWidget {
 
 class _KaraState extends State<Kara> {
   final List<TaskModel> _tasks = [];
-  // final List<TaskModel> _completedTasks = [];///////////////////
   final TextEditingController _taskTextEditingController = TextEditingController();
   int _currentIndex = 0;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay(hour: 0, minute: 0);
   DateTime? _selectedReminder;
+  String response = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTasksFromServer();
+  }
+
+  Future<void> _fetchTasksFromServer() async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('todos~$stuID_info\u0000');
+
+      serverSocket.listen((socketResponse) {
+        response = String.fromCharCodes(socketResponse);
+        print("Server response: $response");
+        _parseAndAddTasks(response);
+      });
+    } catch (e) {
+      print("Error connecting to server: $e");
+    }
+  }
+
+  void _parseAndAddTasks(String data) {
+    List<String> tasksData = data.split(',');
+    for (var taskData in tasksData) {
+      List<String> taskDetails = taskData.split('/');
+      if (taskDetails.length == 4) {
+        String title = taskDetails[0];
+        DateTime deadline = DateFormat('yyyy-MM-dd h:mm a').parse('${taskDetails[1]} ${taskDetails[2]}');
+        bool isDone = taskDetails[3] == '0';
+
+        TaskModel newTask = TaskModel(
+          id: DateTime.now().toString(),
+          title: title,
+          deadline: deadline,
+          isDone: isDone,
+        );
+
+        setState(() {
+          _tasks.add(newTask);
+        });
+      }
+    }
+  }
+
+  Future<void> _sendTaskToServer(TaskModel task) async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      String formattedDate = DateFormat('yyyy-MM-dd').format(task.deadline);
+      String formattedTime = DateFormat('h:mm a').format(task.deadline);
+      serverSocket.write('addTodo~${task.title}~$formattedDate~$formattedTime~$stuID_info\u0000');
+      await serverSocket.flush();
+      serverSocket.close();
+    } catch (e) {
+      print("Error connecting to server: $e");
+    }
+  }
 
   void _createTask(TaskModel task) {
     setState(() {
       _tasks.add(task);
     });
+    _sendTaskToServer(task); // Call the method to send the task to the server
   }
 
-  void _removeTask(String taskId) {
+  Future<void> _removeTask(String taskId) async {
+    final task = _tasks.firstWhere((task) => task.id == taskId);
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      serverSocket.write('deleteTodo~${task.title}~$stuID_info\u0000');
+      await serverSocket.flush();
+      serverSocket.close();
+    } catch (e) {
+      print("Error connecting to server: $e");
+    }
+
     setState(() {
       _tasks.removeWhere((task) => task.id == taskId);
-      // _completedTasks.removeWhere((task) => task.id == taskId);
     });
   }
 
-  void onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
+  Future<void> _toggleTaskStatus(TaskModel task) async {
+    try {
+      final serverSocket = await Socket.connect("192.168.131.93", 8412);
+      String status = task.isDone ? '0' : '1';
+      serverSocket.write('updateTodo~${task.title}~$status~$stuID_info\u0000');
+      await serverSocket.flush();
+      serverSocket.close();
+    } catch (e) {
+      print("Error connecting to server: $e");
+    }
 
-  void _toggleTaskStatus(TaskModel task) {
     setState(() {
       task.isDone = !task.isDone;
-      // if (task.isDone) {
-      //   _completedTasks.add(task);
-      // } else {
-      //   _completedTasks.removeWhere((completedTask) => completedTask.id == task.id);
-      // }
     });
   }
 
@@ -69,8 +133,8 @@ class _KaraState extends State<Kara> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: isDeadline ? _selectedDate : DateTime.now(),
-      firstDate: DateTime(2015),
-      lastDate: DateTime(2101),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
     );
     if (picked != null) {
       setState(() {
@@ -111,31 +175,19 @@ class _KaraState extends State<Kara> {
     final completedTasks = _tasks.where((task) => task.isDone).toList();
 
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text('Tasks'),
-      //   centerTitle: true,
-      //   backgroundColor: Colors.pinkAccent,
-      // ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Align(
-            //   alignment: Alignment.topLeft,
-            //   child: Text(
-            //     '${DateFormat('yMMMMd', 'en').format(DateTime.now())}',
-            //     style: TextStyle(fontSize: 16),
-            //   ),
-            // ),
             SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
                 itemCount: incompleteTasks.length + 1, // +1 for the Completed section
-                // itemCount: _tasks.where((task) => !task.isDone).length + 1, // +1 for the Completed section
                 itemBuilder: (context, index) {
                   if (index < incompleteTasks.length) {
                     final task = incompleteTasks[index];
                     return Card(
+                      color: Color(0xFF2F1E9D),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
@@ -143,13 +195,15 @@ class _KaraState extends State<Kara> {
                         title: Text(
                           task.title,
                           style: TextStyle(
-                            color: Colors.black,
+                            color: Colors.white,
                             fontSize: 16,
-                            // decoration: task.isDone ? TextDecoration.lineThrough : null,
                           ),
                         ),
                         subtitle: Text(
                           'Deadline: ${DateFormat('h:mm a', 'en').format(task.deadline)}',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -162,7 +216,7 @@ class _KaraState extends State<Kara> {
                             ),
                             IconButton(
                               icon: Icon(
-                                task.isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+                                task.isDone ? Icons.check_box : Icons.radio_button_unchecked,
                                 color: task.isDone ? Colors.green : Colors.grey,
                               ),
                               onPressed: () {
@@ -236,8 +290,8 @@ class _KaraState extends State<Kara> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.pinkAccent,
-        child: Icon(Icons.add),
+        backgroundColor: Color(0xFF2F1E9D),
+        child: Icon(Icons.add, color: Colors.white),
         onPressed: () {
           showDialog(
             context: context,
@@ -246,14 +300,17 @@ class _KaraState extends State<Kara> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
-                title: Text('Add a new task'),
+                title: Text(
+                  'Add a new task',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: _taskTextEditingController,
                       decoration: InputDecoration(
-                        labelText: 'Title',
+                        labelText: 'Title...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
@@ -262,20 +319,25 @@ class _KaraState extends State<Kara> {
                     ),
                     SizedBox(height: 10),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('For:'),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () => _selectDate(context),
-                          child: Text(DateFormat('yMMMMd', 'en').format(_selectedDate)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
+                        Column(
+                          children: [
+                            Text('For:'),
+                            SizedBox(width: 10),
+                            ElevatedButton(
+                              onPressed: () => _selectDate(context),
+                              child: Text(DateFormat('yMMMMd', 'en').format(_selectedDate)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF2F1E9D),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
+                          ],
+                        )
                       ],
                     ),
                     SizedBox(height: 10),
@@ -284,42 +346,17 @@ class _KaraState extends State<Kara> {
                       children: [
                         Column(
                           children: [
-                            Text('Hour:'),
-                            SizedBox(height: 5),
-                            DropdownButton<int>(
-                              value: _selectedTime.hour,
-                              items: List.generate(24, (index) {
-                                return DropdownMenuItem(
-                                  value: index,
-                                  child: Text(index.toString()),
-                                );
-                              }),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedTime = TimeOfDay(hour: value!, minute: _selectedTime.minute);
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                        SizedBox(width: 10),
-                        Column(
-                          children: [
-                            Text('Minutes:'),
-                            SizedBox(height: 5),
-                            DropdownButton<int>(
-                              value: _selectedTime.minute,
-                              items: List.generate(60, (index) {
-                                return DropdownMenuItem(
-                                  value: index,
-                                  child: Text(index.toString()),
-                                );
-                              }),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedTime = TimeOfDay(hour: _selectedTime.hour, minute: value!);
-                                });
-                              },
+                            Text('Select Time:'),
+                            SizedBox(width: 10),
+                            ElevatedButton(
+                              onPressed: () => _selectTime(context),
+                              child: Text(DateFormat('hh:mm a').format(DateTime(
+                                0,
+                                0,
+                                0,
+                                _selectedTime.hour,
+                                _selectedTime.minute,
+                              ))),
                             ),
                           ],
                         ),
@@ -362,36 +399,6 @@ class _KaraState extends State<Kara> {
           );
         },
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: _currentIndex,
-      //   onTap: onTabTapped,
-      //   items: [
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: 'Home',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.list),
-      //       label: 'Todo',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.school),
-      //       label: 'Classes',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.notifications),
-      //       label: 'News',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.assignment),
-      //       label: 'Tasks',
-      //     ),
-      //   ],
-      //   selectedItemColor: Colors.white,
-      //   unselectedItemColor: Colors.grey,
-      //   backgroundColor: Color(0xFF2F1E9D),
-      //   type: BottomNavigationBarType.fixed,
-      // ),
     );
   }
 }
