@@ -301,6 +301,43 @@ class ClientHandler extends Thread {
                 }
                 break;
             }
+            case "tasks": {
+                //tasks~stuID
+                String studentCourses = DB.getCoursesFromStudent(split[1]);
+                StringBuilder sb = new StringBuilder();
+                if (studentCourses != null) {
+                    String[] coursesSeparate = studentCourses.split("-");
+                    for (int i = 0; i < coursesSeparate.length; i++) {
+                        String[] courseGrade = coursesSeparate[i].split("/");
+                        String cid = courseGrade[0];
+                        sb.append(DB.getAssignmentDataForCourse(cid));
+                    }
+                    if (sb.length() > 0 && sb.charAt(sb.length() - 1) == ',') {
+                        sb.deleteCharAt(sb.length() - 1);
+                    }
+                    try {
+                        writer(sb.toString());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                break;
+            }
+            case "taskChange": {
+                //taskChange~stuID~assignmentName
+                String[] aNameCName = split[2].split(" - ");
+                String aName = aNameCName[0];
+                String cName = aNameCName[1];
+                String cid = DB.getCourseIDfromName(cName);
+                DB.changeIsActiveInAssignment(aName, cid);
+                try {
+                    writer("changed isActive");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
             case "classAddCourse": {
                 //classAddCourse~stuID~cid
                 if (DB.checkCourseInFile(split[2])) {
@@ -348,6 +385,52 @@ class ClientHandler extends Thread {
                 }
                 break;
             }
+            case "birthday": {
+                //birthday~stuID
+                StringBuilder sb = DB.getBirthdaysToday();
+                if (sb.length() > 0 && sb.charAt(sb.length() - 1) == ',') {
+                    sb.deleteCharAt(sb.length() - 1);
+                }
+                try {
+                    writer(sb.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+            case "todos": {
+                //todos~stuID
+                String data = DB.getStudentTodos(split[1]);
+                if (data != null) {
+                    try {
+                        writer(data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            }
+            case "updateTodo": {
+                //updateTodo~taskName~status~stuID
+                DB.updateStudentTodo(split[3], split[1], split[2]);
+                System.out.println("update complete for todo");
+                break;
+            }
+            case "deleteTodo": {
+                //deleteTodo~taskName~stuID
+                DB.deleteTodo(split[2], split[1]);
+                System.out.println("delete complete for todo");
+                break;
+            }
+            case "addTodo": {
+                //addTodo~taskTitle~date~time~stuID
+                DB.addTodoToStudent(split[4], split[1], split[2], split[3]);
+                System.out.println("todo added");
+                break;
+            }
+
+
+
 
 
         }
