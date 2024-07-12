@@ -52,12 +52,14 @@ public class Main {
                             if (choiceAdd1 == 1) {
                                 System.out.println("Enter Course name:");
                                 String Cname1 = input.next();
-                                if (DB.checkCourseInFile(Cname1)) {
+                                System.out.println("Enter course ID:");
+                                String cid1 = input.next();
+                                if (DB.checkCourseInFile(cid1)) {
                                     if (DB.checkCourseHasTeacher(Cname1)) {
                                         System.out.println("This Course already has a Teacher. If you want to set a new Teacher, remove the old one first.");
                                     } else {
-                                        DB.saveTeacherToFile(TID1, TFname1, TLname1, Cname1);
-                                        DB.saveTeacherToCourse(Cname1, TID1);
+                                        DB.saveTeacherToFile(TID1, TFname1, TLname1, cid1);
+                                        DB.saveTeacherToCourse(cid1, TID1);
                                         System.out.println("Teacher set to Course successfully");
                                     }
                                 }
@@ -88,7 +90,9 @@ public class Main {
                     case 3:
                         System.out.println("Enter a name for this course");
                         String Cname3 = input.next();
-                        if (DB.checkCourseInFile(Cname3)) {
+                        System.out.println("Enter course id:");
+                        String cid3 = input.next();
+                        if (DB.checkCourseInFile(cid3)) {
                             System.out.println("Course already exists!");
                         }
                         else {
@@ -116,36 +120,38 @@ public class Main {
                                 String CisActive3 = input.next();
                                 System.out.println("Enter Course exam date:");
                                 String CexamDate3 = input.next();
-                                DB.saveCourseToFile(Cname3, TID3, Cvahed3, CisActive3, CexamDate3 /*, null*/);
-                                DB.saveCourseToTeacher(TID3, Cname3);
+                                DB.saveCourseToFile(Cname3, TID3, Cvahed3, CisActive3, CexamDate3, cid3);
+                                DB.saveCourseToTeacher(TID3, cid3);
                             }
 
                         }
                         break;
                     case 4:
-                        System.out.println("Enter name of the Course to be removed:");
-                        String Cname4 = input.next();
-                        if (!DB.checkCourseInFile(Cname4)) {
+                        System.out.println("Enter Course id to be removed:");
+                        String cid4 = input.next();
+                        if (!DB.checkCourseInFile(cid4)) {
                             System.out.println("Course doesn't exist!");
                         } else {
-                            DB.removeCourseFromTeacherFile(Cname4);
-                            DB.removeCourseFromStudentFile(Cname4);
-                            DB.deleteCourseAssignments(Cname4);
-                            DB.deleteCourseFromFile(Cname4);
+                            DB.removeCourseFromTeacherFile(cid4);
+                            DB.removeCourseFromStudentFile(cid4);
+                            DB.deleteCourseAssignments(cid4);
+                            DB.deleteCourseFromFile(cid4);
                             System.out.println("Course removed successfully!");
                         }
                         break;
                     case 5:
                         System.out.println("Enter Course name:");
                         String Cname5 = input.next();
+                        System.out.println("Enter course id:");
+                        String cid5 = input.next();
                         if (DB.checkCourseHasTeacher(Cname5)) {
                             System.out.println("This Course already has a Teacher. If you want to set a new Teacher, remove the old one first.");
                         } else {
                             System.out.println("Enter Teacher ID:");
                             String TID5 = input.next();
                             if (DB.checkTeacherInFile(TID5)) {
-                                DB.saveTeacherToCourse(Cname5, TID5);
-                                DB.saveCourseToTeacher(TID5, Cname5);
+                                DB.saveTeacherToCourse(cid5, TID5);
+                                DB.saveCourseToTeacher(TID5, cid5);
                                 System.out.println("Teacher set to Course successfully");
                             }
                             else {
@@ -164,8 +170,8 @@ public class Main {
                                     }
                                 }
                                 if (status5 == 1 && DB.checkTeacherInFile(TID5)) {
-                                    DB.saveTeacherToCourse(Cname5, TID5);
-                                    DB.saveCourseToTeacher(TID5, Cname5);
+                                    DB.saveTeacherToCourse(cid5, TID5);
+                                    DB.saveCourseToTeacher(TID5, cid5);
                                     System.out.println("Teacher set to Course successfully");
                                 }
                             }
@@ -173,15 +179,18 @@ public class Main {
                         }
                         break;
                     case 6:
-                        System.out.println("Enter Course name:");
+                        System.out.println("Enter course name:");
                         String Cname6 = input.next();
-                        if (!DB.checkCourseInFile(Cname6)) {
+                        System.out.println("Enter Course id:");
+                        String cid6 = input.next();
+                        System.out.println();
+                        if (!DB.checkCourseInFile(cid6)) {
                             System.out.println("Course doesn't exist!");
                         } else {
                             if (!DB.checkCourseHasTeacher(Cname6)) {
                                 System.out.println("Course doesn't have a Teacher!");
                             } else {
-                                DB.deleteTeacherFromCourse(Cname6);
+                                DB.deleteTeacherFromCourse(cid6);
                                 System.out.println("Teacher removed from Course successfully!");
                             }
                         }
@@ -192,15 +201,15 @@ public class Main {
                         if (!DB.checkStudentInFile(StudentID7)) {
                             System.out.println("Student doesn't exist!");
                         } else {
-                            System.out.println("Enter Course name:");
-                            String Cname7 = input.next();
-                            if (!DB.checkCourseInFile(Cname7)) {
+                            System.out.println("Enter Course id:");
+                            String cid7 = input.next();
+                            if (!DB.checkCourseInFile(cid7)) {
                                 System.out.println("Course doesn't exist");
                             } else {
-                                if (DB.checkCourseInStudent(Cname7, StudentID7)) {
+                                if (DB.checkCourseInStudent(cid7, StudentID7)) {
                                     System.out.println("Student is already enrolled in this Course!");
                                 } else {
-                                    DB.saveCourseToStudent(StudentID7, Cname7, "0");
+                                    DB.saveCourseToStudent(StudentID7, cid7, "0");
                                     System.out.println("Student added to Course successfully!");
                                 }
                             }
@@ -212,15 +221,15 @@ public class Main {
                         if (!DB.checkStudentInFile(StudentID8)) {
                             System.out.println("Student doesn't exist!");
                         } else {
-                            System.out.println("Enter Course name:");
-                            String Cname8 = input.next();
-                            if (!DB.checkCourseInFile(Cname8)) {
+                            System.out.println("Enter Course id:");
+                            String cid8 = input.next();
+                            if (!DB.checkCourseInFile(cid8)) {
                                 System.out.println("Course doesn't exist");
                             } else {
-                                if (!DB.checkCourseInStudent(Cname8, StudentID8)) {
+                                if (!DB.checkCourseInStudent(cid8, StudentID8)) {
                                     System.out.println("Student isn't enrolled in this Course.");
                                 } else {
-                                    DB.removeCourseFromStudent(StudentID8, Cname8);
+                                    DB.removeCourseFromStudent(StudentID8, cid8);
                                     System.out.println("Student removed from Course successfully!");
                                 }
                             }
@@ -235,7 +244,7 @@ public class Main {
                         if (DB.checkStudentInFile(StudentID9)) {
                             System.out.println("Student already exists!");
                         } else {
-                            DB.saveStudentToFile(StudentID9, "", SFname9, SLname9);
+                            DB.saveStudentToFile(StudentID9, StudentID9, "", SFname9, SLname9);
                         }
                         break;
                     case 10:
@@ -250,38 +259,40 @@ public class Main {
                     case 11:
                         System.out.println("Enter Assignment Name:");
                         String AName11 = input.next();
-                        System.out.println("Enter Course Name");
-                        String Cname11 = input.next();
-                        if (DB.checkAssignmentInFile(AName11, Cname11)) {
+                        System.out.println("Enter Course id");
+                        String cid11 = input.next();
+                        if (DB.checkAssignmentInFile(AName11, cid11)) {
                             System.out.println("Assignment already exists!");
                         } else {
                             System.out.println("Enter deadline date:");
                             String deadline11 = input.next();
+                            System.out.println("enter description:");
+                            String description11 = input.nextLine();
                             System.out.println("is Assignment active?\nYes (1)  no (0)");
                             String isActive11 = input.next();
-                            DB.saveAssignmentToFile(AName11, Cname11, deadline11, isActive11);
+                            DB.saveAssignmentToFile(AName11, cid11, deadline11, description11, isActive11);
                         }
                         break;
                     case 12:
                         System.out.println("Enter Assignment name:");
                         String Aname12 = input.next();
-                        System.out.println("Enter Course name:");
-                        String Cname12 = input.next();
-                        if (!DB.checkAssignmentInFile(Aname12, Cname12)) {
+                        System.out.println("Enter Course id:");
+                        String cid12 = input.next();
+                        if (!DB.checkAssignmentInFile(Aname12, cid12)) {
                             System.out.println("Assignment doesn't exist!");
                         } else {
-                            DB.deleteAssignmentFromFile(Aname12, Cname12);
+                            DB.deleteAssignmentFromFile(Aname12, cid12);
                         }
                         break;
                     case 13:
-                        System.out.println("Enter Course Name:");
-                        String Cname13 = input.next();
-                        if (!DB.checkCourseInFile(Cname13)) {
+                        System.out.println("Enter Course id:");
+                        String cid13 = input.next();
+                        if (!DB.checkCourseInFile(cid13)) {
                             System.out.println("Course doesn't exist!");
                         } else {
                             System.out.println("Set Course as\nActive (1)  Inactive(0)");
                             String isActive13 = input.next();
-                            DB.changeIsActiveInCourse(Cname13, isActive13);
+                            DB.changeIsActiveInCourse(cid13, isActive13);
                         }
                         break;
 
@@ -317,11 +328,11 @@ public class Main {
                             System.out.println("Enter Student ID:");
                             String StudentID1 = input.next();
                             if (DB.checkStudentInFile(StudentID1)) {
-                                System.out.println("Enter Course name:");
-                                String Cname1 = input.next();
-                                if (DB.checkCourseInFile(Cname1)) {
-                                    if (DB.checkTeacherInCourse(Cname1, TID)) {
-                                        DB.saveCourseToStudent(StudentID1, Cname1, "0");
+                                System.out.println("Enter Course id:");
+                                String cid1 = input.next();
+                                if (DB.checkCourseInFile(cid1)) {
+                                    if (DB.checkTeacherInCourse(cid1, TID)) {
+                                        DB.saveCourseToStudent(StudentID1, cid1, "0");
                                     } else {
                                         System.out.println("You don't have access to this Course!");
                                     }
@@ -338,16 +349,16 @@ public class Main {
                             if (!DB.checkStudentInFile(StudentID2)) {
                                 System.out.println("Student doesn't exist!");
                             } else {
-                                System.out.println("Enter Course name:");
-                                String Cname2 = input.next();
-                                if (!DB.checkCourseInFile(Cname2)) {
+                                System.out.println("Enter Course id:");
+                                String cid2 = input.next();
+                                if (!DB.checkCourseInFile(cid2)) {
                                     System.out.println("Course doesn't exist");
                                 } else {
-                                    if(DB.checkTeacherInCourse(Cname2, TID)) {
-                                        if (!DB.checkCourseInStudent(Cname2, StudentID2)) {
+                                    if(DB.checkTeacherInCourse(cid2, TID)) {
+                                        if (!DB.checkCourseInStudent(cid2, StudentID2)) {
                                             System.out.println("Student isn't enrolled in this Course.");
                                         } else {
-                                            DB.removeCourseFromStudent(StudentID2, Cname2);
+                                            DB.removeCourseFromStudent(StudentID2, cid2);
                                             System.out.println("Student removed from Course successfully!");
                                         }
                                     } else {
@@ -385,17 +396,19 @@ public class Main {
                         case 4:
                             System.out.println("Enter Assignment Name:");
                             String AName4 = input.next();
-                            System.out.println("Enter Course Name");
-                            String Cname4 = input.next();
-                            if (DB.checkTeacherInCourse(Cname4, TID)) {
-                                if (DB.checkAssignmentInFile(AName4, Cname4)) {
+                            System.out.println("Enter Course id");
+                            String cid4 = input.next();
+                            if (DB.checkTeacherInCourse(cid4, TID)) {
+                                if (DB.checkAssignmentInFile(AName4, cid4)) {
                                     System.out.println("Assignment already exists!");
                                 } else {
                                     System.out.println("Enter deadline date:");
                                     String deadline11 = input.next();
+                                    System.out.println("Enter description:");
+                                    String description4 = input.nextLine();
                                     System.out.println("is Assignment active?\nYes (1)  no (0)");
                                     String isActive11 = input.next();
-                                    DB.saveAssignmentToFile(AName4, Cname4, deadline11, isActive11);
+                                    DB.saveAssignmentToFile(AName4, cid4, deadline11, description4, isActive11);
                                 }
                             } else {
                                 System.out.println("You don't have access to this course");
@@ -404,13 +417,13 @@ public class Main {
                         case 5:
                             System.out.println("Enter Assignment name:");
                             String Aname5 = input.next();
-                            System.out.println("Enter Course name:");
-                            String Cname5 = input.next();
-                            if (DB.checkTeacherInCourse(Cname5, TID)) {
-                                if (!DB.checkAssignmentInFile(Aname5, Cname5)) {
+                            System.out.println("Enter Course id:");
+                            String cid5 = input.next();
+                            if (DB.checkTeacherInCourse(cid5, TID)) {
+                                if (!DB.checkAssignmentInFile(Aname5, cid5)) {
                                     System.out.println("Assignment doesn't exist!");
                                 } else {
-                                    DB.deleteAssignmentFromFile(Aname5, Cname5);
+                                    DB.deleteAssignmentFromFile(Aname5, cid5);
                                 }
                             } else {
                                 System.out.println("You don't have access to this Course!");
@@ -419,15 +432,15 @@ public class Main {
                         case 6:
                             System.out.println("Enter Assignment name:");
                             String Aname6 = input.next();
-                            System.out.println("Enter Course name:");
-                            String Cname6 = input.next();
-                            if (DB.checkTeacherInCourse(Cname6, TID)) {
-                                if (!DB.checkAssignmentInFile(Aname6, Cname6)) {
+                            System.out.println("Enter Course id:");
+                            String cid6 = input.next();
+                            if (DB.checkTeacherInCourse(cid6, TID)) {
+                                if (!DB.checkAssignmentInFile(Aname6, cid6)) {
                                     System.out.println("Assignment doesn't exist!");
                                 } else {
                                     System.out.println("Enter new Date:");
                                     String deadline = input.next();
-                                    DB.changeAssignmentDeadline(Aname6, Cname6, deadline);
+                                    DB.changeAssignmentDeadline(Aname6, cid6, deadline);
                                 }
                             } else {
                                 System.out.println("You don't have access to this Course!");
