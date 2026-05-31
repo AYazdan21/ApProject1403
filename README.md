@@ -20,51 +20,8 @@ A comprehensive full-stack student management application built with Java backen
 - [Acknowledgments](#acknowledgments)
 - [Contact](#contact)
 
+
 <a id="features"></a>
-## ✨ Features
-
-<a id="architecture"></a>
-## 🏗️ Architecture
-
-<a id="technologies"></a>
-## 🛠️ Technologies
-
-<a id="prerequisites"></a>
-## 📦 Prerequisites
-
-<a id="installation"></a>
-## 🚀 Installation
-
-<a id="usage"></a>
-## 💻 Usage
-
-<a id="project-structure"></a>
-## 📁 Project Structure
-
-<a id="testing"></a>
-## 🧪 Testing
-
-<a id="known-issues--limitations"></a>
-## 🚧 Known Issues & Limitations
-
-<a id="future-enhancements"></a>
-## 🔮 Future Enhancements
-
-<a id="contributing"></a>
-## 🤝 Contributing
-
-<a id="license"></a>
-## 📄 License
-
-<a id="authors"></a>
-## 👥 Authors
-
-<a id="acknowledgments"></a>
-## 🙏 Acknowledgments
-
-<a id="contact"></a>
-## 📞 Contact
-
 ## ✨ Features
 
 ### 👨‍💼 Administrator Features
@@ -91,6 +48,7 @@ A comprehensive full-stack student management application built with Java backen
 - Birthday notifications
 - Task management (to-do list)
 
+<a id="architecture"></a>
 ## 🏗️ Architecture
 
 This project follows a **client-server architecture**:
@@ -115,6 +73,7 @@ This project follows a **client-server architecture**:
                                                   └──────────────────┘
 ```
 
+<a id="technologies"></a>
 ## 🛠️ Technologies
 
 ### Backend
@@ -136,6 +95,7 @@ This project follows a **client-server architecture**:
   - `html` - HTML parsing
   - `confetti` - Celebration animations
 
+<a id="prerequisites"></a>
 ## 📦 Prerequisites
 
 ### Backend Requirements
@@ -150,6 +110,7 @@ This project follows a **client-server architecture**:
 - Android SDK (for Android development)
 - Xcode (for iOS development on macOS)
 
+<a id="installation"></a>
 ## 🚀 Installation
 
 ### 1. Clone the Repository
@@ -199,6 +160,7 @@ flutter run
   // For physical device: 'http://YOUR_IP:8080'
   ```
 
+<a id="usage"></a>
 ## 💻 Usage
 
 ### Starting the Backend Server
@@ -241,6 +203,7 @@ Student:
   Password: student123
 ```
 
+<a id="project-structure"></a>
 ## 📁 Project Structure
 
 ```
@@ -290,6 +253,7 @@ student-management-system/
 └── .gitignore                       # Root gitignore
 ```
 
+<a id="testing"></a>
 ## 🧪 Testing
 
 ### Backend Testing
@@ -312,6 +276,7 @@ flutter test integration_test/
 flutter test --coverage
 ```
 
+<a id="known-issues--limitations"></a>
 ## 🚧 Known Issues & Limitations
 
 - File-based storage (not suitable for production; consider migrating to a database)
@@ -320,6 +285,7 @@ flutter test --coverage
 - No real-time updates (requires manual refresh)
 - Single-threaded server (may not handle high concurrency)
 
+<a id="future-enhancements"></a>
 ## 🔮 Future Enhancements
 
 - [ ] Migrate to PostgreSQL/MySQL database
@@ -335,6 +301,7 @@ flutter test --coverage
 - [ ] Add Docker containerization
 - [ ] Create CI/CD pipeline
 
+<a id="contributing"></a>
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -352,27 +319,32 @@ Contributions are welcome! Please follow these steps:
 - Add comments for complex logic
 - Update documentation for new features
 
+<a id="license"></a>
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+<a id="authors"></a>
 ## 👥 Authors
 
 - **Amirreza Yazdanpanah** - *Initial work* - [YourGitHub](https://github.com/AYazdan21)
 - **Aryan Pira**
 
+<a id="acknowledgments"></a>
 ## 🙏 Acknowledgments
 
 - Flutter team for the amazing framework
 - Java community for extensive documentation
 - All contributors and testers
 
+<a id="contact"></a>
 ## 📞 Contact
 
 For questions or support, please contact:
 - Email: a.yazdanpanah1383@gmail.com
 - GitHub: [@AYazdan21](https://github.com/AYazdan21)
 - LinkedIn: [Amirreza Yazdanpanah](https://www.linkedin.com/in/amirreza-yazdanpanah-69459a297/)
+
 
 ---
 
