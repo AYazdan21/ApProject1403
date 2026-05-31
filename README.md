@@ -20,6 +20,51 @@ A comprehensive full-stack student management application built with Java backen
 - [Acknowledgments](#acknowledgments)
 - [Contact](#contact)
 
+<a id="features"></a>
+## ✨ Features
+
+<a id="architecture"></a>
+## 🏗️ Architecture
+
+<a id="technologies"></a>
+## 🛠️ Technologies
+
+<a id="prerequisites"></a>
+## 📦 Prerequisites
+
+<a id="installation"></a>
+## 🚀 Installation
+
+<a id="usage"></a>
+## 💻 Usage
+
+<a id="project-structure"></a>
+## 📁 Project Structure
+
+<a id="testing"></a>
+## 🧪 Testing
+
+<a id="known-issues--limitations"></a>
+## 🚧 Known Issues & Limitations
+
+<a id="future-enhancements"></a>
+## 🔮 Future Enhancements
+
+<a id="contributing"></a>
+## 🤝 Contributing
+
+<a id="license"></a>
+## 📄 License
+
+<a id="authors"></a>
+## 👥 Authors
+
+<a id="acknowledgments"></a>
+## 🙏 Acknowledgments
+
+<a id="contact"></a>
+## 📞 Contact
+
 ## ✨ Features
 
 ### 👨‍💼 Administrator Features
