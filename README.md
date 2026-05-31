@@ -315,7 +315,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Flutter team for the amazing framework
 - Java community for extensive documentation
 - All contributors and testers
-- [Add any other acknowledgments]
 
 ## 📞 Contact
 
