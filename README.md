@@ -4,7 +4,7 @@ A comprehensive full-stack student management application built with Java backen
 
 ## 📋 Table of Contents
 
-- [Features](#features)
+- [Features](##features)
 - [Architecture](#architecture)
 - [Technologies](#technologies)
 - [Prerequisites](#prerequisites)
