@@ -1,0 +1,158 @@
+# Root-level gitignore for Student Management System
+
+# ============================================
+# BACKEND (Java) - ApProject1403
+# ============================================
+
+# Compiled class files
+ApProject1403/out/
+ApProject1403/target/
+ApProject1403/**/*.class
+*.class
+
+# IDE - IntelliJ IDEA
+ApProject1403/.idea/
+*.ipr
+*.iws
+
+# IDE - Eclipse
+ApProject1403/.apt_generated
+ApProject1403/.classpath
+ApProject1403/.factorypath
+ApProject1403/.project
+ApProject1403/.settings
+ApProject1403/.springBeans
+ApProject1403/.sts4-cache
+ApProject1403/bin/
+
+# IDE - NetBeans
+ApProject1403/nbproject/private/
+ApProject1403/nbbuild/
+ApProject1403/dist/
+ApProject1403/nbdist/
+ApProject1403/.nb-gradle/
+
+# IDE - VS Code
+ApProject1403/.vscode/
+
+# Runtime data files (keep templates only)
+ApProject1403/data/*.txt
+!ApProject1403/data/README.md
+!ApProject1403/data/*_template.txt
+
+# Logs
+ApProject1403/*.log
+
+# ============================================
+# FRONTEND (Flutter) - ap_flutter
+# ============================================
+
+# Miscellaneous
+ap_flutter/*.class
+ap_flutter/*.log
+ap_flutter/*.pyc
+ap_flutter/*.swp
+ap_flutter/.DS_Store
+ap_flutter/.atom/
+ap_flutter/.buildlog/
+ap_flutter/.history
+ap_flutter/.svn/
+ap_flutter/migrate_working_dir/
+
+# IntelliJ related
+ap_flutter/.idea/
+
+# VS Code
+ap_flutter/.vscode/
+
+# Flutter/Dart/Pub related
+ap_flutter/**/doc/api/
+ap_flutter/**/ios/Flutter/.last_build_id
+ap_flutter/.dart_tool/
+ap_flutter/.flutter-plugins
+ap_flutter/.flutter-plugins-dependencies
+ap_flutter/.pub-cache/
+ap_flutter/.pub/
+ap_flutter/build/
+
+# Symbolication related
+ap_flutter/app.*.symbols
+
+# Obfuscation related
+ap_flutter/app.*.map.json
+
+# Android Studio will place build artifacts here
+ap_flutter/android/app/debug
+ap_flutter/android/app/profile
+ap_flutter/android/app/release
+
+# iOS
+ap_flutter/ios/Pods/
+ap_flutter/ios/.symlinks/
+ap_flutter/ios/Flutter/Flutter.framework
+ap_flutter/ios/Flutter/Flutter.podspec
+ap_flutter/ios/.generated/
+ap_flutter/ios/Flutter/App.framework
+ap_flutter/ios/Flutter/Generated.xcconfig
+ap_flutter/ios/ServiceDefinitions.json
+ap_flutter/ios/Runner/GeneratedPluginRegistrant.*
+
+# Web
+ap_flutter/web/
+
+# Windows
+ap_flutter/windows/flutter/generated_plugin_registrant.cc
+ap_flutter/windows/flutter/generated_plugin_registrant.h
+
+# macOS
+ap_flutter/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Coverage
+ap_flutter/coverage/
+
+# ============================================
+# GENERAL
+# ============================================
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Database files (if you migrate from file-based storage)
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Documentation build
+docs/_build/
+site/
