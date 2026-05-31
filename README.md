@@ -4,15 +4,21 @@ A comprehensive full-stack student management application built with Java backen
 
 ## 📋 Table of Contents
 
-- [Features](##features)
+- [Features](#features)
 - [Architecture](#architecture)
 - [Technologies](#technologies)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
+- [Testing](#testing)
+- [Known Issues & Limitations](#known-issues--limitations)
+- [Future Enhancements](#future-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
+- [Authors](#authors)
+- [Acknowledgments](#acknowledgments)
+- [Contact](#contact)
 
 ## ✨ Features
 
@@ -321,7 +327,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For questions or support, please contact:
 - Email: a.yazdanpanah1383@gmail.com
 - GitHub: [@AYazdan21](https://github.com/AYazdan21)
-- LinkedIn: [Amirreza Yazdanpanah]([https://linkedin.com/in/yourprofile](https://www.linkedin.com/in/amirreza-yazdanpanah-69459a297/))
+- LinkedIn: [Amirreza Yazdanpanah](https://www.linkedin.com/in/amirreza-yazdanpanah-69459a297/)
 
 ---
 
