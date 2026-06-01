@@ -327,7 +327,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <a id="authors"></a>
 ## 👥 Authors
 
-- **Amirreza Yazdanpanah** - *Initial work* - [YourGitHub](https://github.com/AYazdan21)
+- **Amirreza Yazdanpanah** 
 - **Aryan Pira**
 
 <a id="acknowledgments"></a>
